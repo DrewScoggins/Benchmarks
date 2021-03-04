@@ -14,13 +14,13 @@ These jobs can be executed using the .NET Crank global tool.
 Install `crank` with the following command:
 
 ```
-dotnet tool install Microsoft.Crank.Controller --version "0.1.0-*" --global
+dotnet tool install Microsoft.Crank.Controller --version "0.2.0-*" --global
 ```
 
 Alternatively, update `crank` with the following command:
 
 ```
-dotnet tool update Microsoft.Crank.Controller --version "0.1.0-*" --global
+dotnet tool update Microsoft.Crank.Controller --version "0.2.0-*" --global
 ```
 
 ## Profiles
@@ -41,7 +41,7 @@ For testing purpose only, the __local__ profile requires a local agent to run:
 
 
 ```
-dotnet tool install Microsoft.Crank.Agent --version "0.1.0-*" --global
+dotnet tool install Microsoft.Crank.Agent --version "0.2.0-*" --global
 
 crank-agent
 ```
@@ -342,6 +342,27 @@ crank --config https://raw.githubusercontent.com/aspnet/Benchmarks/master/scenar
   - `--variable protocol=messagepack`
 
 > Note: MessagePack is not supported with ServerSentEvents
+
+## Micro benchmarks
+
+These scenarios are running [dotnet micro benchmarks](https://github.com/dotnet/performance) from the https://github.com/dotnet/performance repository.
+
+### Sample
+
+```
+crank --config https://github.com/aspnet/Benchmarks/blob/master/scenarios/dotnet.benchmarks.yml?raw=true --scenario linq --profile aspnet-perf-win
+```
+
+### Available scenarios
+
+- `linq`
+- `sockets`
+
+The scenario named `custom` can be used to pass any custom filter variable like so:
+
+```
+crank --config https://github.com/aspnet/Benchmarks/blob/master/scenarios/dotnet.benchmarks.yml?raw=true --scenario custom --profile aspnet-perf-win --variable filter=*LinqBenchmarks*
+```
 
 ## FAQ
 
