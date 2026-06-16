@@ -108,7 +108,7 @@ steps:
             "name": "crank",
             "condition": "(${{ parameters.condition }})",
             "retries": 1,
-            "args": [ "${{ s.arguments }} ${{ b.arguments }} ${{ parameters.arguments }} $(azureProfile) --load.options.reuseBuild true --no-metadata --no-measurements --session $(session) --command-line-property --table BaselineBenchmarks --sql SQL_CONNECTION_STRING --cert-tenant-id SQL_SERVER_TENANTID --cert-client-id SQL_SERVER_CLIENTID --cert-path SQL_SERVER_CERT_PATH --cert-sni --chart" ]
+            "args": [ "${{ s.arguments }} ${{ b.arguments }} ${{ parameters.arguments }} $(azureProfile) --load.options.reuseBuild true --no-metadata --no-measurements --session $(session) --command-line-property --table BaselineBenchmarks --sql SQL_CONNECTION_STRING --mi-client-id 25c41b19-2b79-45ea-af5e-e97b80453445 --chart" ]
           }
 
 # Orchard scenarios with orchard-specific baselines (release/2.2 branch for net8.0 and net9.0)
@@ -129,5 +129,5 @@ steps:
             "name": "crank",
             "condition": "(${{ parameters.condition }})",
             "retries": 1,
-            "args": [ "${{ s.arguments }} ${{ b.arguments }} ${{ parameters.arguments }} $(azureProfile) --load.options.reuseBuild true --no-metadata --no-measurements --session $(session) --command-line-property --table BaselineBenchmarks --sql SQL_CONNECTION_STRING --cert-tenant-id SQL_SERVER_TENANTID --cert-client-id SQL_SERVER_CLIENTID --cert-path SQL_SERVER_CERT_PATH --cert-sni --chart" ]
+            "args": [ "${{ s.arguments }} ${{ b.arguments }} ${{ parameters.arguments }} $(azureProfile) --load.options.reuseBuild true --no-metadata --no-measurements --session $(session) --command-line-property --table BaselineBenchmarks --sql SQL_CONNECTION_STRING --mi-client-id 25c41b19-2b79-45ea-af5e-e97b80453445 --chart" ]
           }
