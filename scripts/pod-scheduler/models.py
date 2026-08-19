@@ -122,6 +122,7 @@ class Scenario:
     # Optional explicit timeout (minutes) for the generated AzDO job. When
     # None, the generator derives one from estimated_runtime.
     timeout: Optional[int] = None
+    enable_perf_lab_publication: bool = False
 
 
 @dataclass

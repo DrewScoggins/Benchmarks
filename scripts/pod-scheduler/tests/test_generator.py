@@ -94,6 +94,7 @@ class TestTrendLaneRendering(unittest.TestCase):
                     "template": "trend-scenarios.yml",
                     "profiles": ["gold-lin-app", "gold-load-load"],
                     "timeout": 120,
+                    "enable_perf_lab_publication": False,
                     "perf_lab_lane": {
                         "name": "aspnet-gold-linux-x64",
                         "queue": "Ubuntu.2204.Amd64.AspNetGold.Perf",
@@ -125,6 +126,8 @@ class TestTrendLaneRendering(unittest.TestCase):
             '$(Build.SourceVersion)"',
             yaml,
         )
+        self.assertIn("enablePerfLabPublication: false", yaml)
+        self.assertNotIn("enablePerfLabPublication: true", yaml)
         self.assertIn(
             'arguments: "--config '
             "https://raw.githubusercontent.com/aspnet/Benchmarks/"

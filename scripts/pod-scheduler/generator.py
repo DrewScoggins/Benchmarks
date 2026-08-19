@@ -89,6 +89,9 @@ def schedule_to_template_data(
                 "template": run.scenario.template,
                 "profiles": run.profiles,
                 "timeout": _job_timeout(run),
+                "enable_perf_lab_publication": (
+                    run.scenario.enable_perf_lab_publication
+                ),
                 "perf_lab_lane": None if lane is None else {
                     "name": lane.name,
                     "queue": lane.queue,
@@ -218,6 +221,13 @@ def _render_yaml(
                     )
                 lines.append(
                     f'      benchmarksRawBaseUrl: "{raw_base_url}"'
+                )
+                publication_enabled = str(
+                    job.get("enable_perf_lab_publication", False)
+                ).lower()
+                lines.append(
+                    "      enablePerfLabPublication: "
+                    f"{publication_enabled}"
                 )
                 lines.append(f"      perfLabLaneName: {lane['name']}")
                 lines.append(f"      perfLabQueue: {lane['queue']}")

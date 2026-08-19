@@ -48,6 +48,27 @@ def _enable_trend(payload):
         )
     }
     payload["scenarios"][0]["template"] = "trend-scenarios.yml"
+    payload["scenarios"][0]["enable_perf_lab_publication"] = False
+
+
+def _write_lane_registry(tmp):
+    with open(
+        os.path.join(tmp, "lanes.json"), "w", encoding="utf-8"
+    ) as f:
+        json.dump({
+            "schemaVersion": 1,
+            "lanes": {
+                "p1": {
+                    "name": "stable-lane",
+                    "queue": "Ubuntu.2204.Amd64.Test.Perf",
+                    "os": "Ubuntu 22.04",
+                    "architecture": "x64",
+                    "locale": "en-US",
+                    "cores": 4,
+                    "hardware": "Test",
+                }
+            },
+        }, f)
 
 
 class TestLoadConfig(unittest.TestCase):
@@ -127,6 +148,9 @@ class TestLoadConfig(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             payload = json.loads(json.dumps(_BASE))
             payload["scenarios"][0]["template"] = "trend-scenarios.yml"
+            payload["scenarios"][0][
+                "enable_perf_lab_publication"
+            ] = False
             payload["metadata"]["pipeline"] = {
                 "trend_benchmarks_raw_base_url": (
                     "https://raw.githubusercontent.com/aspnet/Benchmarks/"
@@ -226,6 +250,63 @@ class TestLoadConfig(unittest.TestCase):
                 "must be pinned",
             ):
                 load_config(path)
+
+    def test_trend_publication_setting_is_required(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            payload = json.loads(json.dumps(_BASE))
+            _enable_trend(payload)
+            del payload["scenarios"][0]["enable_perf_lab_publication"]
+            _write_lane_registry(tmp)
+            path = _write(tmp, payload)
+
+            with self.assertRaisesRegex(
+                ConfigError,
+                "must explicitly set",
+            ):
+                load_config(path)
+
+    def test_trend_publication_setting_must_be_boolean(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            payload = json.loads(json.dumps(_BASE))
+            _enable_trend(payload)
+            payload["scenarios"][0][
+                "enable_perf_lab_publication"
+            ] = "false"
+            _write_lane_registry(tmp)
+            path = _write(tmp, payload)
+
+            with self.assertRaisesRegex(ConfigError, "must be a boolean"):
+                load_config(path)
+
+    def test_publication_opt_in_requires_single_pod_trend_canary(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            payload = json.loads(json.dumps(_BASE))
+            _enable_trend(payload)
+            payload["scenarios"][0][
+                "enable_perf_lab_publication"
+            ] = True
+            payload["scenarios"][0]["pods"] = ["p1", "p2"]
+            _write_lane_registry(tmp)
+            path = _write(tmp, payload)
+
+            with self.assertRaisesRegex(ConfigError, "single-pod Trend canary"):
+                load_config(path)
+
+    def test_single_pod_trend_canary_may_opt_in(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            payload = json.loads(json.dumps(_BASE))
+            _enable_trend(payload)
+            payload["scenarios"][0][
+                "enable_perf_lab_publication"
+            ] = True
+            _write_lane_registry(tmp)
+            path = _write(tmp, payload)
+
+            cfg = load_config(path)
+
+            self.assertTrue(
+                cfg.scenarios[0].enable_perf_lab_publication
+            )
 
 
 if __name__ == "__main__":

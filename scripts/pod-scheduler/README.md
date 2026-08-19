@@ -106,6 +106,14 @@ template. It maps pod names to stable PerfLab lane names, canonical PerfLab
 queues, OS/architecture/locale, core count, and hardware identity. These
 values are intentionally independent of the Service Bus worker queues.
 
+Every Trend scenario source entry must explicitly set
+`"enable_perf_lab_publication": false`. The generator passes this value as the
+boolean `enablePerfLabPublication` template parameter, and the worker receives
+`postProcess.enabled: false`; raw JSON and existing SQL writes continue, but no
+PerfLab storage or queue publication occurs. Enabling publication requires
+explicit approval and a separate single-pod canary scenario. The loader rejects
+broader or non-Trend opt-ins.
+
 The `schedule` field's **hour** must be a `H` or `H/N` cron expression
 (e.g. `3` or `3/12`). Lists, ranges, and `*` are rejected at load time so the
 hour-offset used for split YAMLs cannot silently no-op.
@@ -132,6 +140,7 @@ hour-offset used for split YAMLs cannot silently no-op.
 | `pods` | List of pod names this scenario targets (no duplicates) |
 | `estimated_runtime` | Runtime estimate in minutes; defaults per type if omitted |
 | `timeout` | Optional explicit AzDO `timeoutInMinutes` override. When unset, the generator picks `max(120, min(240, ceil(2 * estimated_runtime)))` |
+| `enable_perf_lab_publication` | Required for Trend; keep `false` unless an explicitly approved single-pod canary is being configured |
 
 ### Scenario Types
 

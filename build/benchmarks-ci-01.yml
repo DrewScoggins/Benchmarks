@@ -147,6 +147,7 @@ jobs:
       serviceBusQueueName: citrine2
       serviceBusNamespace: aspnetbenchmarks
       benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)"
+      enablePerfLabPublication: false
       perfLabLaneName: aspnet-gold-windows-x64
       perfLabQueue: Windows.Server2022.Amd64.AspNetGold.Perf
       perfLabOs: "Windows Server 2022"
@@ -262,6 +263,7 @@ jobs:
       serviceBusQueueName: citrine1
       serviceBusNamespace: aspnetbenchmarks
       benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)"
+      enablePerfLabPublication: false
       perfLabLaneName: aspnet-gold-linux-x64
       perfLabQueue: Ubuntu.2204.Amd64.AspNetGold.Perf
       perfLabOs: "Ubuntu 22.04"

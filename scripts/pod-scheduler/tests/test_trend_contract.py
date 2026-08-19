@@ -18,6 +18,11 @@ _PIPELINES = [
     "benchmarks-ci-azure.yml",
     "benchmarks-ci-cobalt.yml",
 ]
+_SOURCE_CONFIGS = [
+    "benchmarks_ci_pods.json",
+    "benchmarks_ci_azure_pods.json",
+    "benchmarks_ci_cobalt_pods.json",
+]
 _ROUTING_QUEUES = {
     "citrine1",
     "citrine2",
@@ -103,9 +108,13 @@ def _expected_family(test_name):
     raise AssertionError(f"No expected family rule for {test_name}")
 
 
-def _payload(template):
+def _payload(template, publication_enabled=False):
     text = _read(template)
     message_body = text[text.index("        {\n"):]
+    message_body = message_body.replace(
+        "${{ lower(parameters.enablePerfLabPublication) }}",
+        str(publication_enabled).lower(),
+    )
     return json.loads(textwrap.dedent(message_body))
 
 
@@ -198,6 +207,12 @@ class TestTrendTemplateContract(unittest.TestCase):
                 for property_name in required_properties:
                     self.assertIn(property_name, text)
                 self.assertIn('"name": "Crank PerfLab export"', text)
+                self.assertRegex(
+                    text,
+                    r"- name: enablePerfLabPublication\n"
+                    r"  type: boolean\n"
+                    r"  default: false",
+                )
                 self.assertIn('"--identity-source", "crank"', text)
                 self.assertIn(
                     '"--crank-json", "crank-results.json"', text
@@ -228,6 +243,7 @@ class TestTrendTemplateContract(unittest.TestCase):
                     "Crank PerfLab export",
                     payload["postProcess"]["name"],
                 )
+                self.assertFalse(payload["postProcess"]["enabled"])
 
     def test_post_process_uses_only_credential_environment_references(self):
         for template in _TEMPLATES:
@@ -310,6 +326,10 @@ class TestTrendTemplateContract(unittest.TestCase):
                 _PINNED_RAW_BASE_URL,
                 parameters["benchmarksRawBaseUrl"],
             )
+            self.assertEqual(
+                "false",
+                parameters["enablePerfLabPublication"],
+            )
             self.assertIn(
                 f"--config {_PINNED_RAW_BASE_URL}/build/ci.profile.yml",
                 parameters["arguments"],
@@ -351,6 +371,48 @@ class TestTrendTemplateContract(unittest.TestCase):
             ]:
                 self.assertIn(required, parameters)
         self.assertGreater(call_count, 0)
+
+    def test_current_source_configs_disable_perflab_publication(self):
+        scenario_count = 0
+        for config_name in _SOURCE_CONFIGS:
+            config = json.loads(_read(config_name))
+            for scenario in config["scenarios"]:
+                if scenario["template"] not in _TEMPLATES:
+                    continue
+                scenario_count += 1
+                self.assertIn(
+                    "enable_perf_lab_publication",
+                    scenario,
+                )
+                self.assertIs(
+                    False,
+                    scenario["enable_perf_lab_publication"],
+                )
+        self.assertGreater(scenario_count, 0)
+
+    def test_every_current_trend_payload_disables_publication(self):
+        payload_count = 0
+        for call in _trend_calls():
+            parameters = call["parameters"]
+            self.assertEqual(
+                "false",
+                parameters["enablePerfLabPublication"],
+            )
+            payload = _payload(
+                call["template"],
+                publication_enabled=(
+                    parameters["enablePerfLabPublication"] == "true"
+                ),
+            )
+            for _ in _scenarios(call["template"]):
+                payload_count += 1
+                self.assertFalse(payload["postProcess"]["enabled"])
+        for pipeline in _PIPELINES:
+            self.assertNotIn(
+                "enablePerfLabPublication: true",
+                _read(pipeline),
+            )
+        self.assertGreater(payload_count, 0)
 
     def test_every_expanded_trend_payload_uses_pinned_benchmarks_urls(self):
         payload_count = 0

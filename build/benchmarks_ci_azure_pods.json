@@ -98,6 +98,7 @@
             "template": "trend-scenarios.yml",
             "type": 2,
             "pods": ["azure-arm64", "azure2-amd64", "cobalt-cloud-lin", "cobalt-cloud-lin-azl3-dual", "idna-amd-lin", "idna-amd-win", "idna-intel-lin", "idna-intel-win"],
+            "enable_perf_lab_publication": false,
             "estimated_runtime": 20.0
         },
         {
@@ -105,6 +106,7 @@
             "template": "trend-database-scenarios.yml",
             "type": 3,
             "pods": ["azure-arm64", "azure2-amd64", "cobalt-cloud-lin", "cobalt-cloud-lin-azl3"],
+            "enable_perf_lab_publication": false,
             "estimated_runtime": 15.0
         }
     ]

@@ -187,6 +187,7 @@ def load_config(path: str) -> ScheduleConfig:
     raw_scenarios = _require(data, "scenarios", "config root")
     for sc_data in raw_scenarios:
         name = _require(sc_data, "name", "scenario entry")
+        template = _require(sc_data, "template", f"scenario '{name}'")
         scenario_pods = _require(sc_data, "pods", f"scenario '{name}'")
         if not scenario_pods:
             raise ConfigError(f"scenario '{name}' has empty pods list")
@@ -196,6 +197,30 @@ def load_config(path: str) -> ScheduleConfig:
             })
             raise ConfigError(
                 f"scenario '{name}' lists duplicate pods: {dupes}"
+            )
+        if (
+            template in _TREND_TEMPLATES
+            and "enable_perf_lab_publication" not in sc_data
+        ):
+            raise ConfigError(
+                f"Trend scenario '{name}' must explicitly set "
+                "enable_perf_lab_publication"
+            )
+        enable_publication = sc_data.get(
+            "enable_perf_lab_publication",
+            False,
+        )
+        if not isinstance(enable_publication, bool):
+            raise ConfigError(
+                f"scenario '{name}' enable_perf_lab_publication must be "
+                "a boolean"
+            )
+        if enable_publication and (
+            template not in _TREND_TEMPLATES or len(scenario_pods) != 1
+        ):
+            raise ConfigError(
+                "PerfLab publication may only be enabled for an explicit "
+                "single-pod Trend canary"
             )
         runtime_raw = sc_data.get("estimated_runtime") or 0
         timeout = sc_data.get("timeout")
@@ -207,10 +232,11 @@ def load_config(path: str) -> ScheduleConfig:
                 )
         scenarios.append(Scenario(
             name=name,
-            template=_require(sc_data, "template", f"scenario '{name}'"),
+            template=template,
             type=ScenarioType(_require(sc_data, "type", f"scenario '{name}'")),
             pods=list(scenario_pods),
             estimated_runtime=float(runtime_raw) if runtime_raw else 0.0,
+            enable_perf_lab_publication=enable_publication,
             timeout=timeout,
         ))
 

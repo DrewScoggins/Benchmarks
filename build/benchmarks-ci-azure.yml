@@ -237,6 +237,7 @@ jobs:
       serviceBusQueueName: azurearm64
       serviceBusNamespace: aspnetbenchmarks
       benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)"
+      enablePerfLabPublication: false
       perfLabLaneName: aspnet-azure-arm64
       perfLabQueue: Ubuntu.2204.Arm64.AspNetAzure.Perf
       perfLabOs: "Ubuntu 22.04"
@@ -276,6 +277,7 @@ jobs:
       serviceBusQueueName: azurearm64
       serviceBusNamespace: aspnetbenchmarks
       benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)"
+      enablePerfLabPublication: false
       perfLabLaneName: aspnet-azure-amd64
       perfLabQueue: Ubuntu.2204.Amd64.AspNetAzure2.Perf
       perfLabOs: "Ubuntu 22.04"
@@ -301,6 +303,7 @@ jobs:
       serviceBusQueueName: azure
       serviceBusNamespace: aspnetbenchmarks
       benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)"
+      enablePerfLabPublication: false
       perfLabLaneName: aspnet-cobalt-cloud-linux-x64
       perfLabQueue: Ubuntu.2204.Amd64.AspNetCobaltCloud.Perf
       perfLabOs: "Ubuntu 22.04"
@@ -324,6 +327,7 @@ jobs:
       serviceBusQueueName: azurearm64
       serviceBusNamespace: aspnetbenchmarks
       benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)"
+      enablePerfLabPublication: false
       perfLabLaneName: aspnet-cobalt-cloud-azurelinux3-x64
       perfLabQueue: AzureLinux.3.Amd64.AspNetCobaltCloud.Perf
       perfLabOs: "Azure Linux 3.0"
@@ -349,6 +353,7 @@ jobs:
       serviceBusQueueName: azure
       serviceBusNamespace: aspnetbenchmarks
       benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)"
+      enablePerfLabPublication: false
       perfLabLaneName: aspnet-idna-amd-linux-x64
       perfLabQueue: Ubuntu.2204.Amd64.AspNetIdnaAmd.Perf
       perfLabOs: "Ubuntu 22.04"
@@ -372,6 +377,7 @@ jobs:
       serviceBusQueueName: azurearm64
       serviceBusNamespace: aspnetbenchmarks
       benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)"
+      enablePerfLabPublication: false
       perfLabLaneName: aspnet-idna-amd-windows-x64
       perfLabQueue: Windows.Server2022.Amd64.AspNetIdnaAmd.Perf
       perfLabOs: "Windows Server 2022"
@@ -397,6 +403,7 @@ jobs:
       serviceBusQueueName: azure
       serviceBusNamespace: aspnetbenchmarks
       benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)"
+      enablePerfLabPublication: false
       perfLabLaneName: aspnet-idna-intel-linux-x64
       perfLabQueue: Ubuntu.2204.Amd64.AspNetIdnaIntel.Perf
       perfLabOs: "Ubuntu 22.04"
@@ -420,6 +427,7 @@ jobs:
       serviceBusQueueName: azurearm64
       serviceBusNamespace: aspnetbenchmarks
       benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)"
+      enablePerfLabPublication: false
       perfLabLaneName: aspnet-idna-intel-windows-x64
       perfLabQueue: Windows.Server2022.Amd64.AspNetIdnaIntel.Perf
       perfLabOs: "Windows Server 2022"
@@ -445,6 +453,7 @@ jobs:
       serviceBusQueueName: azure
       serviceBusNamespace: aspnetbenchmarks
       benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)"
+      enablePerfLabPublication: false
       perfLabLaneName: aspnet-azure-arm64
       perfLabQueue: Ubuntu.2204.Arm64.AspNetAzure.Perf
       perfLabOs: "Ubuntu 22.04"
@@ -468,6 +477,7 @@ jobs:
       serviceBusQueueName: azurearm64
       serviceBusNamespace: aspnetbenchmarks
       benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)"
+      enablePerfLabPublication: false
       perfLabLaneName: aspnet-azure-amd64
       perfLabQueue: Ubuntu.2204.Amd64.AspNetAzure2.Perf
       perfLabOs: "Ubuntu 22.04"
@@ -493,6 +503,7 @@ jobs:
       serviceBusQueueName: azure
       serviceBusNamespace: aspnetbenchmarks
       benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)"
+      enablePerfLabPublication: false
       perfLabLaneName: aspnet-cobalt-cloud-linux-x64
       perfLabQueue: Ubuntu.2204.Amd64.AspNetCobaltCloud.Perf
       perfLabOs: "Ubuntu 22.04"
@@ -518,6 +529,7 @@ jobs:
       serviceBusQueueName: azure
       serviceBusNamespace: aspnetbenchmarks
       benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)"
+      enablePerfLabPublication: false
       perfLabLaneName: aspnet-cobalt-cloud-azurelinux3-x64
       perfLabQueue: AzureLinux.3.Amd64.AspNetCobaltCloud.Perf
       perfLabOs: "Azure Linux 3.0"
