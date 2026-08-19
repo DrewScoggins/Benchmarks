@@ -112,6 +112,74 @@ class TestLoadConfig(unittest.TestCase):
             with self.assertRaises(ConfigError):
                 load_config(path)
 
+    def test_trend_scenario_requires_lane_registry_entry(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            payload = json.loads(json.dumps(_BASE))
+            payload["scenarios"][0]["template"] = "trend-scenarios.yml"
+            path = _write(tmp, payload)
+            with self.assertRaisesRegex(ConfigError, "no entry"):
+                load_config(path)
+
+    def test_trend_lane_registry_is_loaded(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            payload = json.loads(json.dumps(_BASE))
+            payload["metadata"]["trend_lane_registry"] = "lanes.json"
+            payload["scenarios"][0]["template"] = "trend-scenarios.yml"
+            with open(
+                os.path.join(tmp, "lanes.json"), "w", encoding="utf-8"
+            ) as f:
+                json.dump({
+                    "schemaVersion": 1,
+                    "lanes": {
+                        "p1": {
+                            "name": "stable-lane",
+                            "queue": "Ubuntu.2204.Amd64.Test.Perf",
+                            "os": "Ubuntu 22.04",
+                            "architecture": "x64",
+                            "locale": "en-US",
+                            "cores": 4,
+                            "hardware": "Test",
+                        }
+                    },
+                }, f)
+            path = _write(tmp, payload)
+
+            cfg = load_config(path)
+
+            lane = cfg.pods["p1"].perf_lab_lane
+            self.assertIsNotNone(lane)
+            self.assertEqual(lane.queue, "Ubuntu.2204.Amd64.Test.Perf")
+
+    def test_trend_lane_cannot_reuse_service_bus_routing_queue(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            payload = json.loads(json.dumps(_BASE))
+            payload["metadata"]["trend_lane_registry"] = "lanes.json"
+            payload["scenarios"][0]["template"] = "trend-scenarios.yml"
+            with open(
+                os.path.join(tmp, "lanes.json"), "w", encoding="utf-8"
+            ) as f:
+                json.dump({
+                    "schemaVersion": 1,
+                    "lanes": {
+                        "p1": {
+                            "name": "stable-lane",
+                            "queue": "a",
+                            "os": "Ubuntu 22.04",
+                            "architecture": "x64",
+                            "locale": "en-US",
+                            "cores": 4,
+                            "hardware": "Test",
+                        }
+                    },
+                }, f)
+            path = _write(tmp, payload)
+
+            with self.assertRaisesRegex(
+                ConfigError,
+                "routing queues cannot be used",
+            ):
+                load_config(path)
+
 
 if __name__ == "__main__":
     unittest.main()

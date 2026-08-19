@@ -1,5 +1,6 @@
 {
   "returnCode": 0,
+  "crankVersion": "0.2.0-alpha.25380.1",
   "jobResults": {
     "jobs": {
       "application": {
@@ -102,7 +103,35 @@
     },
     "properties": {
       "buildId": "12345",
-      "scenario": "Plaintext"
+      "buildNumber": "20260818.1",
+      "scenario": "Plaintext",
+      "perflab.build.repo": "https://github.com/dotnet/runtime",
+      "perflab.build.branch": "main",
+      "perflab.build.timeStamp": "2026-08-18T11:59:00Z",
+      "perflab.lane.name": "aspnet-gold-linux-x64",
+      "perflab.lane.queue": "Ubuntu.2204.Amd64.AspNetGold.Perf",
+      "perflab.lane.os.name": "Ubuntu 22.04",
+      "perflab.lane.os.architecture": "x64",
+      "perflab.lane.os.locale": "en-US",
+      "perflab.lane.additionalData.hardware": "AspNetGold",
+      "perflab.configuration.Framework": "net10.0",
+      "perflab.configuration.Runtime": "CoreCLR",
+      "perflab.configuration.Cores": "28",
+      "perflab.configuration.Topology": "SUT+Load",
+      "perflab.configuration.Configuration": "Release",
+      "perflab.scenario.name": "Plaintext",
+      "perflab.scenario.family": "aspnet-plaintext",
+      "perflab.scenario.categories": "aspnet,plaintext",
+      "perflab.perfRepoHash": "2222222222222222222222222222222222222222",
+      "perflab.azureDevOps.project": "internal",
+      "perflab.azureDevOps.pipeline": "aspnet-benchmarks",
+      "perflab.azureDevOps.buildId": "12345",
+      "perflab.azureDevOps.buildNumber": "20260818.1",
+      "perflab.azureDevOps.buildUrl": "https://dev.azure.com/example/internal/_build/results?buildId=12345",
+      "perflab.sql.session": "trend-20260818-plaintext",
+      "perflab.sql.table": "TrendBenchmarks",
+      "perflab.policy.path": "crank-perflab-counter-policy.json",
+      "perflab.additionalData.producer": "TrendBenchmarks"
     }
   },
   "benchmarks": []

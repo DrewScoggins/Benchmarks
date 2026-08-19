@@ -258,7 +258,7 @@ namespace Crank.PerfLabExporter.Conversion
                         path = counter.SourcePath
                     }),
                     ContractJson.CreateSerializerOptions()),
-                ["crank.exportIdentityPath"] = source.ExportIdentityPath,
+                ["crank.exportIdentitySource"] = source.ExportIdentitySource,
                 ["crank.independentSampleCount"] = "1",
                 ["crank.measurementPointCount"] = CountMeasurements(execution).ToString(CultureInfo.InvariantCulture),
                 ["crank.measurementsUsedAsSamples"] = "false",
@@ -281,6 +281,13 @@ namespace Crank.PerfLabExporter.Conversion
             if (!string.IsNullOrWhiteSpace(identity.Sql.RecordId))
             {
                 data["crank.sqlRecordId"] = identity.Sql.RecordId;
+            }
+
+            if (!source.ExportIdentitySource.StartsWith(
+                    "crank-properties:",
+                    StringComparison.Ordinal))
+            {
+                data["crank.exportIdentityPath"] = source.ExportIdentitySource;
             }
 
             foreach (var property in execution.JobResults.Properties.OrderBy(property => property.Key, StringComparer.Ordinal))

@@ -7,5 +7,5 @@ namespace Crank.PerfLabExporter.Conversion
     public sealed record ExportSourceMetadata(
         string CrankResultPath,
         string CounterPolicyPath,
-        string ExportIdentityPath);
+        string ExportIdentitySource);
 }

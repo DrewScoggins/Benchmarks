@@ -59,6 +59,18 @@ def sanitize_job_id(raw: str) -> str:
 
 
 @dataclass
+class PerfLabLane:
+    """Stable PerfLab identity for a Trend SUT machine class."""
+    name: str
+    queue: str
+    os: str
+    architecture: str
+    locale: str
+    cores: int
+    hardware: str
+
+
+@dataclass
 class Pod:
     """A fixed group of machines that run scenarios together."""
     name: str
@@ -70,6 +82,7 @@ class Pod:
     sut_profile: str = ""
     load_profile: Optional[str] = None
     db_profile: Optional[str] = None
+    perf_lab_lane: Optional[PerfLabLane] = None
 
     def machines_for_type(self, scenario_type: ScenarioType) -> Set[str]:
         """Return the set of physical machines used for a given scenario type."""

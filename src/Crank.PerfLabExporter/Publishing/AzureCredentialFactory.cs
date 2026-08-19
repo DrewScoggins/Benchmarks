@@ -12,9 +12,15 @@ namespace Crank.PerfLabExporter.Publishing
     {
         public string? ManagedIdentityClientId { get; init; }
 
+        public string? ManagedIdentityClientIdEnvironmentVariable { get; init; }
+
         public string? TenantId { get; init; }
 
+        public string? TenantIdEnvironmentVariable { get; init; }
+
         public string? ClientId { get; init; }
+
+        public string? ClientIdEnvironmentVariable { get; init; }
 
         public string? CertificatePath { get; init; }
 
@@ -27,6 +33,18 @@ namespace Crank.PerfLabExporter.Publishing
     {
         public static TokenCredential Create(StorageAuthenticationOptions options)
         {
+            var managedIdentityClientId = ResolveDirectOrEnvironment(
+                options.ManagedIdentityClientId,
+                options.ManagedIdentityClientIdEnvironmentVariable,
+                "managed identity client ID");
+            var tenantId = ResolveDirectOrEnvironment(
+                options.TenantId,
+                options.TenantIdEnvironmentVariable,
+                "tenant ID");
+            var clientId = ResolveDirectOrEnvironment(
+                options.ClientId,
+                options.ClientIdEnvironmentVariable,
+                "client ID");
             var usesCertificate =
                 !string.IsNullOrWhiteSpace(options.CertificatePath) ||
                 !string.IsNullOrWhiteSpace(options.CertificateBase64EnvironmentVariable);
@@ -34,12 +52,12 @@ namespace Crank.PerfLabExporter.Publishing
             {
                 return new DefaultAzureCredential(new DefaultAzureCredentialOptions
                 {
-                    ManagedIdentityClientId = options.ManagedIdentityClientId
+                    ManagedIdentityClientId = managedIdentityClientId
                 });
             }
 
-            if (string.IsNullOrWhiteSpace(options.TenantId) ||
-                string.IsNullOrWhiteSpace(options.ClientId))
+            if (string.IsNullOrWhiteSpace(tenantId) ||
+                string.IsNullOrWhiteSpace(clientId))
             {
                 throw new ArgumentException(
                     "Certificate authentication requires both tenant ID and client ID.");
@@ -73,8 +91,8 @@ namespace Crank.PerfLabExporter.Publishing
                 }
 
                 return new ClientCertificateCredential(
-                    options.TenantId,
-                    options.ClientId,
+                    tenantId,
+                    clientId,
                     pathCertificate,
                     credentialOptions);
             }
@@ -99,10 +117,25 @@ namespace Crank.PerfLabExporter.Publishing
                 password,
                 X509KeyStorageFlags.EphemeralKeySet);
             return new ClientCertificateCredential(
-                options.TenantId,
-                options.ClientId,
+                tenantId,
+                clientId,
                 base64Certificate,
                 credentialOptions);
+        }
+
+        private static string? ResolveDirectOrEnvironment(
+            string? directValue,
+            string? environmentVariable,
+            string description)
+        {
+            if (!string.IsNullOrWhiteSpace(directValue))
+            {
+                return directValue;
+            }
+
+            return string.IsNullOrWhiteSpace(environmentVariable)
+                ? null
+                : GetRequiredEnvironmentVariable(environmentVariable, description);
         }
 
         private static string? GetOptionalEnvironmentVariable(string? name, string description)

@@ -12,6 +12,9 @@ namespace Crank.PerfLabExporter.Contracts.Crank
         [JsonPropertyName("returnCode")]
         public int ReturnCode { get; set; }
 
+        [JsonPropertyName("crankVersion")]
+        public string? CrankVersion { get; set; }
+
         [JsonPropertyName("jobResults")]
         public CrankJobResults JobResults { get; set; } = new();
 

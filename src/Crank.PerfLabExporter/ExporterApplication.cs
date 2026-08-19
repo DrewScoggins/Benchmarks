@@ -38,9 +38,8 @@ namespace Crank.PerfLabExporter
                 return 0;
             }
 
-            var crankPath = Path.GetFullPath(options.CrankJsonPath);
-            var policyPath = Path.GetFullPath(options.CounterPolicyPath);
-            var identityPath = Path.GetFullPath(options.IdentityPath);
+            var crankPath = ResolveInputPath(options.CrankJsonPath);
+            var policyPath = ResolveInputPath(options.CounterPolicyPath);
             var serializerOptions = ContractJson.CreateSerializerOptions();
             var execution = await ReadJsonAsync<CrankExecutionResult>(
                 crankPath,
@@ -50,10 +49,25 @@ namespace Crank.PerfLabExporter
                 policyPath,
                 serializerOptions,
                 cancellationToken);
-            var identity = await ReadJsonAsync<ExportIdentity>(
-                identityPath,
-                serializerOptions,
-                cancellationToken);
+            ExportIdentity identity;
+            string identitySource;
+            if (options.IdentitySource == IdentitySource.File)
+            {
+                var identityPath = ResolveInputPath(options.IdentityPath);
+                identity = await ReadJsonAsync<ExportIdentity>(
+                    identityPath,
+                    serializerOptions,
+                    cancellationToken);
+                identitySource = identityPath;
+            }
+            else
+            {
+                identity = LiveExportIdentityBuilder.Build(
+                    execution,
+                    options.LiveIdentity);
+                identitySource =
+                    $"crank-properties:{options.LiveIdentity.PropertyPrefix}";
+            }
 
             using var httpClient = new HttpClient();
             var githubToken = string.IsNullOrWhiteSpace(options.GitHubTokenEnvironmentVariable)
@@ -65,7 +79,7 @@ namespace Crank.PerfLabExporter
                 execution,
                 policy,
                 identity,
-                new ExportSourceMetadata(crankPath, policyPath, identityPath),
+                new ExportSourceMetadata(crankPath, policyPath, identitySource),
                 cancellationToken);
             var names = ExportNaming.Create(conversion.Report, identity);
             var reportBytes = JsonSerializer.SerializeToUtf8Bytes(
@@ -104,6 +118,26 @@ namespace Crank.PerfLabExporter
             }
 
             return 0;
+        }
+
+        internal static string ResolveInputPath(string path)
+        {
+            if (Path.IsPathFullyQualified(path))
+            {
+                return Path.GetFullPath(path);
+            }
+
+            var workingDirectoryPath = Path.GetFullPath(path);
+            if (File.Exists(workingDirectoryPath))
+            {
+                return workingDirectoryPath;
+            }
+
+            var applicationPath = Path.GetFullPath(
+                Path.Combine(AppContext.BaseDirectory, path));
+            return File.Exists(applicationPath)
+                ? applicationPath
+                : workingDirectoryPath;
         }
 
         private static async Task<T> ReadJsonAsync<T>(

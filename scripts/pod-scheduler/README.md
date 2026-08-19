@@ -74,7 +74,8 @@ python -m unittest discover tests
             "pool": "server",
             "service_bus_connection": "ASPNET Benchmarks Service Bus",
             "service_bus_namespace": "aspnetbenchmarks"
-        }
+        },
+        "trend_lane_registry": "trend-perflab-lanes.json"
     },
     "pods": [
         {
@@ -97,6 +98,10 @@ python -m unittest discover tests
 ```
 
 The `pipeline` block is optional; defaults match the legacy hardcoded values.
+`trend_lane_registry` is required when a config schedules either Trend
+template. It maps pod names to stable PerfLab lane names, canonical PerfLab
+queues, OS/architecture/locale, core count, and hardware identity. These
+values are intentionally independent of the Service Bus worker queues.
 
 The `schedule` field's **hour** must be a `H` or `H/N` cron expression
 (e.g. `3` or `3/12`). Lists, ranges, and `*` are rejected at load time so the

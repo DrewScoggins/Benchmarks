@@ -230,12 +230,33 @@ jobs:
   timeoutInMinutes: 120
   dependsOn: [Baselines_cobalt_cloud_lin, Baselines_cobalt_cloud_lin_azl3_dual]
   condition: succeededOrFailed()
+  variables:
+    ciProfile: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/ci.profile.yml"
+    azureProfile: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/azure.profile.yml"
+    platformJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/platform.benchmarks.yml"
+    plaintextJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/plaintext.benchmarks.yml"
+    databaseJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/database.benchmarks.yml"
+    jsonJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/json.benchmarks.yml"
+    antiforgeryJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/antiforgery.benchmarks.yml"
+    tlsJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/tls.benchmarks.yml"
+    rejectionJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/rejection.benchmarks.yml"
+    minimalJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/Minimal/minimal.benchmarks.yml"
+    blazorSsrJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/BlazorSSR/blazorssr.benchmarks.yml"
+    razorPagesJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/RazorPages/razorpages.benchmarks.yml"
   steps:
   - template: trend-scenarios.yml
     parameters:
       connection: ASPNET Benchmarks Service Bus
       serviceBusQueueName: azurearm64
       serviceBusNamespace: aspnetbenchmarks
+      perfLabLaneName: aspnet-azure-arm64
+      perfLabQueue: Ubuntu.2204.Arm64.AspNetAzure.Perf
+      perfLabOs: "Ubuntu 22.04"
+      perfLabArchitecture: arm64
+      perfLabLocale: en-US
+      perfLabCores: "4"
+      perfLabHardware: AspNetAzure
+      perfLabTopology: "SUT+Load"
       arguments: "$(ciProfile) --profile azure-server-arm64-app --profile azure-client-load "
 
 # GROUP 8
@@ -260,12 +281,33 @@ jobs:
   timeoutInMinutes: 120
   dependsOn: [MVC_cobalt_cloud_lin, Trends_azure_arm64]
   condition: succeededOrFailed()
+  variables:
+    ciProfile: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/ci.profile.yml"
+    azureProfile: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/azure.profile.yml"
+    platformJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/platform.benchmarks.yml"
+    plaintextJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/plaintext.benchmarks.yml"
+    databaseJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/database.benchmarks.yml"
+    jsonJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/json.benchmarks.yml"
+    antiforgeryJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/antiforgery.benchmarks.yml"
+    tlsJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/tls.benchmarks.yml"
+    rejectionJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/rejection.benchmarks.yml"
+    minimalJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/Minimal/minimal.benchmarks.yml"
+    blazorSsrJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/BlazorSSR/blazorssr.benchmarks.yml"
+    razorPagesJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/RazorPages/razorpages.benchmarks.yml"
   steps:
   - template: trend-scenarios.yml
     parameters:
       connection: ASPNET Benchmarks Service Bus
       serviceBusQueueName: azurearm64
       serviceBusNamespace: aspnetbenchmarks
+      perfLabLaneName: aspnet-azure-amd64
+      perfLabQueue: Ubuntu.2204.Amd64.AspNetAzure2.Perf
+      perfLabOs: "Ubuntu 22.04"
+      perfLabArchitecture: x64
+      perfLabLocale: en-US
+      perfLabCores: "4"
+      perfLabHardware: AspNetAzure2
+      perfLabTopology: "SUT+Load"
       arguments: "$(ciProfile) --profile azure2-server-amd64-app --profile azure2-client-load "
 
 # GROUP 9
@@ -276,12 +318,33 @@ jobs:
   timeoutInMinutes: 120
   dependsOn: [MVC_cobalt_cloud_lin_azl3, Trends_azure2_amd64]
   condition: succeededOrFailed()
+  variables:
+    ciProfile: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/ci.profile.yml"
+    azureProfile: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/azure.profile.yml"
+    platformJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/platform.benchmarks.yml"
+    plaintextJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/plaintext.benchmarks.yml"
+    databaseJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/database.benchmarks.yml"
+    jsonJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/json.benchmarks.yml"
+    antiforgeryJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/antiforgery.benchmarks.yml"
+    tlsJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/tls.benchmarks.yml"
+    rejectionJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/rejection.benchmarks.yml"
+    minimalJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/Minimal/minimal.benchmarks.yml"
+    blazorSsrJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/BlazorSSR/blazorssr.benchmarks.yml"
+    razorPagesJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/RazorPages/razorpages.benchmarks.yml"
   steps:
   - template: trend-scenarios.yml
     parameters:
       connection: ASPNET Benchmarks Service Bus
       serviceBusQueueName: azure
       serviceBusNamespace: aspnetbenchmarks
+      perfLabLaneName: aspnet-cobalt-cloud-linux-x64
+      perfLabQueue: Ubuntu.2204.Amd64.AspNetCobaltCloud.Perf
+      perfLabOs: "Ubuntu 22.04"
+      perfLabArchitecture: x64
+      perfLabLocale: en-US
+      perfLabCores: "16"
+      perfLabHardware: AspNetCobaltCloud
+      perfLabTopology: "SUT+Load"
       arguments: "$(ciProfile) --profile cobalt-cloud-lin-server-app --profile cobalt-cloud-lin-client-load "
 
 - job: Trends_cobalt_cloud_lin_azl3_dual
@@ -290,12 +353,33 @@ jobs:
   timeoutInMinutes: 120
   dependsOn: [MVC_cobalt_cloud_lin_azl3, Trends_azure2_amd64]
   condition: succeededOrFailed()
+  variables:
+    ciProfile: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/ci.profile.yml"
+    azureProfile: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/azure.profile.yml"
+    platformJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/platform.benchmarks.yml"
+    plaintextJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/plaintext.benchmarks.yml"
+    databaseJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/database.benchmarks.yml"
+    jsonJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/json.benchmarks.yml"
+    antiforgeryJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/antiforgery.benchmarks.yml"
+    tlsJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/tls.benchmarks.yml"
+    rejectionJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/rejection.benchmarks.yml"
+    minimalJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/Minimal/minimal.benchmarks.yml"
+    blazorSsrJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/BlazorSSR/blazorssr.benchmarks.yml"
+    razorPagesJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/RazorPages/razorpages.benchmarks.yml"
   steps:
   - template: trend-scenarios.yml
     parameters:
       connection: ASPNET Benchmarks Service Bus
       serviceBusQueueName: azurearm64
       serviceBusNamespace: aspnetbenchmarks
+      perfLabLaneName: aspnet-cobalt-cloud-azurelinux3-x64
+      perfLabQueue: AzureLinux.3.Amd64.AspNetCobaltCloud.Perf
+      perfLabOs: "Azure Linux 3.0"
+      perfLabArchitecture: x64
+      perfLabLocale: en-US
+      perfLabCores: "16"
+      perfLabHardware: AspNetCobaltCloud
+      perfLabTopology: "SUT+Load"
       arguments: "$(ciProfile) --profile cobalt-cloud-lin-server-azure-linux3-app --profile cobalt-cloud-lin-db-load "
 
 # GROUP 10
@@ -306,12 +390,33 @@ jobs:
   timeoutInMinutes: 120
   dependsOn: [Trends_cobalt_cloud_lin, Trends_cobalt_cloud_lin_azl3_dual]
   condition: succeededOrFailed()
+  variables:
+    ciProfile: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/ci.profile.yml"
+    azureProfile: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/azure.profile.yml"
+    platformJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/platform.benchmarks.yml"
+    plaintextJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/plaintext.benchmarks.yml"
+    databaseJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/database.benchmarks.yml"
+    jsonJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/json.benchmarks.yml"
+    antiforgeryJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/antiforgery.benchmarks.yml"
+    tlsJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/tls.benchmarks.yml"
+    rejectionJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/rejection.benchmarks.yml"
+    minimalJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/Minimal/minimal.benchmarks.yml"
+    blazorSsrJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/BlazorSSR/blazorssr.benchmarks.yml"
+    razorPagesJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/RazorPages/razorpages.benchmarks.yml"
   steps:
   - template: trend-scenarios.yml
     parameters:
       connection: ASPNET Benchmarks Service Bus
       serviceBusQueueName: azure
       serviceBusNamespace: aspnetbenchmarks
+      perfLabLaneName: aspnet-idna-amd-linux-x64
+      perfLabQueue: Ubuntu.2204.Amd64.AspNetIdnaAmd.Perf
+      perfLabOs: "Ubuntu 22.04"
+      perfLabArchitecture: x64
+      perfLabLocale: en-US
+      perfLabCores: "4"
+      perfLabHardware: AspNetIdnaAmd
+      perfLabTopology: "SUT+Load"
       arguments: "$(ciProfile) --profile idna-amd-lin-app --profile idna-intel-lin-load "
 
 - job: Trends_idna_amd_win
@@ -320,12 +425,33 @@ jobs:
   timeoutInMinutes: 120
   dependsOn: [Trends_cobalt_cloud_lin, Trends_cobalt_cloud_lin_azl3_dual]
   condition: succeededOrFailed()
+  variables:
+    ciProfile: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/ci.profile.yml"
+    azureProfile: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/azure.profile.yml"
+    platformJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/platform.benchmarks.yml"
+    plaintextJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/plaintext.benchmarks.yml"
+    databaseJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/database.benchmarks.yml"
+    jsonJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/json.benchmarks.yml"
+    antiforgeryJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/antiforgery.benchmarks.yml"
+    tlsJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/tls.benchmarks.yml"
+    rejectionJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/rejection.benchmarks.yml"
+    minimalJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/Minimal/minimal.benchmarks.yml"
+    blazorSsrJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/BlazorSSR/blazorssr.benchmarks.yml"
+    razorPagesJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/RazorPages/razorpages.benchmarks.yml"
   steps:
   - template: trend-scenarios.yml
     parameters:
       connection: ASPNET Benchmarks Service Bus
       serviceBusQueueName: azurearm64
       serviceBusNamespace: aspnetbenchmarks
+      perfLabLaneName: aspnet-idna-amd-windows-x64
+      perfLabQueue: Windows.Server2022.Amd64.AspNetIdnaAmd.Perf
+      perfLabOs: "Windows Server 2022"
+      perfLabArchitecture: x64
+      perfLabLocale: en-US
+      perfLabCores: "4"
+      perfLabHardware: AspNetIdnaAmd
+      perfLabTopology: "SUT+Load"
       arguments: "$(ciProfile) --profile idna-amd-win-app --profile azure2-db-load "
 
 # GROUP 11
@@ -336,12 +462,33 @@ jobs:
   timeoutInMinutes: 120
   dependsOn: [Trends_idna_amd_lin, Trends_idna_amd_win]
   condition: succeededOrFailed()
+  variables:
+    ciProfile: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/ci.profile.yml"
+    azureProfile: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/azure.profile.yml"
+    platformJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/platform.benchmarks.yml"
+    plaintextJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/plaintext.benchmarks.yml"
+    databaseJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/database.benchmarks.yml"
+    jsonJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/json.benchmarks.yml"
+    antiforgeryJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/antiforgery.benchmarks.yml"
+    tlsJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/tls.benchmarks.yml"
+    rejectionJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/rejection.benchmarks.yml"
+    minimalJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/Minimal/minimal.benchmarks.yml"
+    blazorSsrJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/BlazorSSR/blazorssr.benchmarks.yml"
+    razorPagesJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/RazorPages/razorpages.benchmarks.yml"
   steps:
   - template: trend-scenarios.yml
     parameters:
       connection: ASPNET Benchmarks Service Bus
       serviceBusQueueName: azure
       serviceBusNamespace: aspnetbenchmarks
+      perfLabLaneName: aspnet-idna-intel-linux-x64
+      perfLabQueue: Ubuntu.2204.Amd64.AspNetIdnaIntel.Perf
+      perfLabOs: "Ubuntu 22.04"
+      perfLabArchitecture: x64
+      perfLabLocale: en-US
+      perfLabCores: "4"
+      perfLabHardware: AspNetIdnaIntel
+      perfLabTopology: "SUT+Load"
       arguments: "$(ciProfile) --profile idna-intel-lin-app --profile idna-amd-lin-load "
 
 - job: Trends_idna_intel_win
@@ -350,12 +497,33 @@ jobs:
   timeoutInMinutes: 120
   dependsOn: [Trends_idna_amd_lin, Trends_idna_amd_win]
   condition: succeededOrFailed()
+  variables:
+    ciProfile: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/ci.profile.yml"
+    azureProfile: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/azure.profile.yml"
+    platformJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/platform.benchmarks.yml"
+    plaintextJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/plaintext.benchmarks.yml"
+    databaseJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/database.benchmarks.yml"
+    jsonJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/json.benchmarks.yml"
+    antiforgeryJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/antiforgery.benchmarks.yml"
+    tlsJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/tls.benchmarks.yml"
+    rejectionJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/rejection.benchmarks.yml"
+    minimalJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/Minimal/minimal.benchmarks.yml"
+    blazorSsrJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/BlazorSSR/blazorssr.benchmarks.yml"
+    razorPagesJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/RazorPages/razorpages.benchmarks.yml"
   steps:
   - template: trend-scenarios.yml
     parameters:
       connection: ASPNET Benchmarks Service Bus
       serviceBusQueueName: azurearm64
       serviceBusNamespace: aspnetbenchmarks
+      perfLabLaneName: aspnet-idna-intel-windows-x64
+      perfLabQueue: Windows.Server2022.Amd64.AspNetIdnaIntel.Perf
+      perfLabOs: "Windows Server 2022"
+      perfLabArchitecture: x64
+      perfLabLocale: en-US
+      perfLabCores: "4"
+      perfLabHardware: AspNetIdnaIntel
+      perfLabTopology: "SUT+Load"
       arguments: "$(ciProfile) --profile idna-intel-win-app --profile azure2-db-load "
 
 # GROUP 12
@@ -366,12 +534,33 @@ jobs:
   timeoutInMinutes: 120
   dependsOn: [Trends_idna_intel_lin, Trends_idna_intel_win]
   condition: succeededOrFailed()
+  variables:
+    ciProfile: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/ci.profile.yml"
+    azureProfile: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/azure.profile.yml"
+    platformJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/platform.benchmarks.yml"
+    plaintextJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/plaintext.benchmarks.yml"
+    databaseJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/database.benchmarks.yml"
+    jsonJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/json.benchmarks.yml"
+    antiforgeryJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/antiforgery.benchmarks.yml"
+    tlsJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/tls.benchmarks.yml"
+    rejectionJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/rejection.benchmarks.yml"
+    minimalJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/Minimal/minimal.benchmarks.yml"
+    blazorSsrJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/BlazorSSR/blazorssr.benchmarks.yml"
+    razorPagesJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/RazorPages/razorpages.benchmarks.yml"
   steps:
   - template: trend-database-scenarios.yml
     parameters:
       connection: ASPNET Benchmarks Service Bus
       serviceBusQueueName: azure
       serviceBusNamespace: aspnetbenchmarks
+      perfLabLaneName: aspnet-azure-arm64
+      perfLabQueue: Ubuntu.2204.Arm64.AspNetAzure.Perf
+      perfLabOs: "Ubuntu 22.04"
+      perfLabArchitecture: arm64
+      perfLabLocale: en-US
+      perfLabCores: "4"
+      perfLabHardware: AspNetAzure
+      perfLabTopology: "SUT+Load+DB"
       arguments: "$(ciProfile) --profile azure-server-arm64-app --profile azure-client-load --profile azure-db-db "
 
 - job: Trends_Database_azure2_amd64
@@ -380,12 +569,33 @@ jobs:
   timeoutInMinutes: 120
   dependsOn: [Trends_idna_intel_lin, Trends_idna_intel_win]
   condition: succeededOrFailed()
+  variables:
+    ciProfile: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/ci.profile.yml"
+    azureProfile: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/azure.profile.yml"
+    platformJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/platform.benchmarks.yml"
+    plaintextJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/plaintext.benchmarks.yml"
+    databaseJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/database.benchmarks.yml"
+    jsonJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/json.benchmarks.yml"
+    antiforgeryJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/antiforgery.benchmarks.yml"
+    tlsJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/tls.benchmarks.yml"
+    rejectionJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/rejection.benchmarks.yml"
+    minimalJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/Minimal/minimal.benchmarks.yml"
+    blazorSsrJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/BlazorSSR/blazorssr.benchmarks.yml"
+    razorPagesJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/RazorPages/razorpages.benchmarks.yml"
   steps:
   - template: trend-database-scenarios.yml
     parameters:
       connection: ASPNET Benchmarks Service Bus
       serviceBusQueueName: azurearm64
       serviceBusNamespace: aspnetbenchmarks
+      perfLabLaneName: aspnet-azure-amd64
+      perfLabQueue: Ubuntu.2204.Amd64.AspNetAzure2.Perf
+      perfLabOs: "Ubuntu 22.04"
+      perfLabArchitecture: x64
+      perfLabLocale: en-US
+      perfLabCores: "4"
+      perfLabHardware: AspNetAzure2
+      perfLabTopology: "SUT+Load+DB"
       arguments: "$(ciProfile) --profile azure2-server-amd64-app --profile azure2-client-load --profile azure2-db-db "
 
 # GROUP 13
@@ -396,12 +606,33 @@ jobs:
   timeoutInMinutes: 120
   dependsOn: [Trends_Database_azure_arm64, Trends_Database_azure2_amd64]
   condition: succeededOrFailed()
+  variables:
+    ciProfile: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/ci.profile.yml"
+    azureProfile: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/azure.profile.yml"
+    platformJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/platform.benchmarks.yml"
+    plaintextJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/plaintext.benchmarks.yml"
+    databaseJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/database.benchmarks.yml"
+    jsonJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/json.benchmarks.yml"
+    antiforgeryJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/antiforgery.benchmarks.yml"
+    tlsJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/tls.benchmarks.yml"
+    rejectionJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/rejection.benchmarks.yml"
+    minimalJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/Minimal/minimal.benchmarks.yml"
+    blazorSsrJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/BlazorSSR/blazorssr.benchmarks.yml"
+    razorPagesJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/RazorPages/razorpages.benchmarks.yml"
   steps:
   - template: trend-database-scenarios.yml
     parameters:
       connection: ASPNET Benchmarks Service Bus
       serviceBusQueueName: azure
       serviceBusNamespace: aspnetbenchmarks
+      perfLabLaneName: aspnet-cobalt-cloud-linux-x64
+      perfLabQueue: Ubuntu.2204.Amd64.AspNetCobaltCloud.Perf
+      perfLabOs: "Ubuntu 22.04"
+      perfLabArchitecture: x64
+      perfLabLocale: en-US
+      perfLabCores: "16"
+      perfLabHardware: AspNetCobaltCloud
+      perfLabTopology: "SUT+Load+DB"
       arguments: "$(ciProfile) --profile cobalt-cloud-lin-server-app --profile cobalt-cloud-lin-client-load --profile cobalt-cloud-lin-db-db "
 
 # GROUP 14
@@ -412,11 +643,32 @@ jobs:
   timeoutInMinutes: 120
   dependsOn: [Trends_Database_cobalt_cloud_lin]
   condition: succeededOrFailed()
+  variables:
+    ciProfile: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/ci.profile.yml"
+    azureProfile: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/azure.profile.yml"
+    platformJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/platform.benchmarks.yml"
+    plaintextJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/plaintext.benchmarks.yml"
+    databaseJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/database.benchmarks.yml"
+    jsonJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/json.benchmarks.yml"
+    antiforgeryJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/antiforgery.benchmarks.yml"
+    tlsJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/tls.benchmarks.yml"
+    rejectionJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/scenarios/rejection.benchmarks.yml"
+    minimalJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/Minimal/minimal.benchmarks.yml"
+    blazorSsrJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/BlazorSSR/blazorssr.benchmarks.yml"
+    razorPagesJobs: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/src/BenchmarksApps/TechEmpower/RazorPages/razorpages.benchmarks.yml"
   steps:
   - template: trend-database-scenarios.yml
     parameters:
       connection: ASPNET Benchmarks Service Bus
       serviceBusQueueName: azure
       serviceBusNamespace: aspnetbenchmarks
+      perfLabLaneName: aspnet-cobalt-cloud-azurelinux3-x64
+      perfLabQueue: AzureLinux.3.Amd64.AspNetCobaltCloud.Perf
+      perfLabOs: "Azure Linux 3.0"
+      perfLabArchitecture: x64
+      perfLabLocale: en-US
+      perfLabCores: "16"
+      perfLabHardware: AspNetCobaltCloud
+      perfLabTopology: "SUT+Load+DB"
       arguments: "$(ciProfile) --profile cobalt-cloud-lin-server-azure-linux3-app --profile cobalt-cloud-lin-client-load --profile cobalt-cloud-lin-db-db "
 

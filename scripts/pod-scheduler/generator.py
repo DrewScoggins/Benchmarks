@@ -20,6 +20,30 @@ from models import (
 
 
 _CRON_HOUR_RE = re.compile(r"^(\d+)(/\d+)?$")
+_TREND_TEMPLATES = {
+    "trend-scenarios.yml",
+    "trend-database-scenarios.yml",
+}
+_TREND_PINNED_VARIABLES = {
+    "ciProfile": "build/ci.profile.yml",
+    "azureProfile": "build/azure.profile.yml",
+    "platformJobs": "scenarios/platform.benchmarks.yml",
+    "plaintextJobs": "scenarios/plaintext.benchmarks.yml",
+    "databaseJobs": "scenarios/database.benchmarks.yml",
+    "jsonJobs": "scenarios/json.benchmarks.yml",
+    "antiforgeryJobs": "scenarios/antiforgery.benchmarks.yml",
+    "tlsJobs": "scenarios/tls.benchmarks.yml",
+    "rejectionJobs": "scenarios/rejection.benchmarks.yml",
+    "minimalJobs": (
+        "src/BenchmarksApps/TechEmpower/Minimal/minimal.benchmarks.yml"
+    ),
+    "blazorSsrJobs": (
+        "src/BenchmarksApps/TechEmpower/BlazorSSR/blazorssr.benchmarks.yml"
+    ),
+    "razorPagesJobs": (
+        "src/BenchmarksApps/TechEmpower/RazorPages/razorpages.benchmarks.yml"
+    ),
+}
 
 
 class GeneratorError(ValueError):
@@ -78,12 +102,26 @@ def schedule_to_template_data(
     for stage in schedule.stages:
         jobs = []
         for run in stage.runs:
+            lane = run.pod.perf_lab_lane
             jobs.append({
                 "name": run.name,
                 "job_id": run.job_name,
                 "template": run.scenario.template,
                 "profiles": run.profiles,
                 "timeout": _job_timeout(run),
+                "perf_lab_lane": None if lane is None else {
+                    "name": lane.name,
+                    "queue": lane.queue,
+                    "os": lane.os,
+                    "architecture": lane.architecture,
+                    "locale": lane.locale,
+                    "cores": lane.cores,
+                    "hardware": lane.hardware,
+                },
+                "perf_lab_topology": {
+                    2: "SUT+Load",
+                    3: "SUT+Load+DB",
+                }.get(int(run.scenario.type)),
             })
         groups.append({"jobs": jobs})
 
@@ -176,6 +214,14 @@ def _render_yaml(
             lines.append(f"  timeoutInMinutes: {job['timeout']}")
             lines.append(f"  dependsOn: [{depends}]")
             lines.append("  condition: succeededOrFailed()")
+            if job["template"] in _TREND_TEMPLATES:
+                lines.append("  variables:")
+                for variable, path in _TREND_PINNED_VARIABLES.items():
+                    lines.append(
+                        f'    {variable}: "--config '
+                        "https://raw.githubusercontent.com/aspnet/Benchmarks/"
+                        f'$(Build.SourceVersion)/{path}"'
+                    )
             lines.append("  steps:")
             lines.append(f"  - template: {job['template']}")
             lines.append("    parameters:")
@@ -186,6 +232,24 @@ def _render_yaml(
             lines.append(
                 f"      serviceBusNamespace: {pipeline.service_bus_namespace}"
             )
+            if job["template"] in _TREND_TEMPLATES:
+                lane = job["perf_lab_lane"]
+                if lane is None:
+                    raise GeneratorError(
+                        f"Trend job {job['name']!r} has no PerfLab lane mapping"
+                    )
+                lines.append(f"      perfLabLaneName: {lane['name']}")
+                lines.append(f"      perfLabQueue: {lane['queue']}")
+                lines.append(f'      perfLabOs: "{lane["os"]}"')
+                lines.append(
+                    f"      perfLabArchitecture: {lane['architecture']}"
+                )
+                lines.append(f"      perfLabLocale: {lane['locale']}")
+                lines.append(f'      perfLabCores: "{lane["cores"]}"')
+                lines.append(f"      perfLabHardware: {lane['hardware']}")
+                lines.append(
+                    f'      perfLabTopology: "{job["perf_lab_topology"]}"'
+                )
             lines.append(
                 f'      arguments: "$(ciProfile) {profiles_args} "'
             )
