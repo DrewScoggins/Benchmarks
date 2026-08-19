@@ -93,6 +93,9 @@ namespace Crank.PerfLabExporter.Tests
                 batchSize,
                 maximumRows,
                 dryRun,
+                dryRun
+                    ? null
+                    : BackfillPublicationSafety.Confirmation,
                 "TrendBenchmarks",
                 "server|database",
                 SqlAuthenticationMode.ConnectionString.ToString(),

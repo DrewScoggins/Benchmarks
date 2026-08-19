@@ -135,7 +135,11 @@ namespace Crank.PerfLabExporter.CommandLine
 
         public int? MaximumRows { get; init; }
 
-        public bool DryRun { get; init; }
+        public bool Publish { get; init; }
+
+        public bool DryRun => !Publish;
+
+        public string? PublicationConfirmation { get; init; }
 
         public string CounterPolicyPath { get; init; } =
             "crank-perflab-counter-policy.json";

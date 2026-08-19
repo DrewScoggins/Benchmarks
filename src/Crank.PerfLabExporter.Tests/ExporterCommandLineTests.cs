@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Crank.PerfLabExporter.Backfill;
 using Crank.PerfLabExporter.CommandLine;
 
 namespace Crank.PerfLabExporter.Tests
@@ -118,6 +119,7 @@ namespace Crank.PerfLabExporter.Tests
             var backfill = Assert.IsType<BackfillOptions>(options.Backfill);
             Assert.Equal(ExportMode.Backfill, options.Mode);
             Assert.True(backfill.DryRun);
+            Assert.False(backfill.Publish);
             Assert.Equal("dbo.TrendBenchmarks", backfill.Table);
             Assert.Equal(25, backfill.BatchSize);
             Assert.Equal(250, backfill.MaximumRows);
@@ -191,6 +193,99 @@ namespace Crank.PerfLabExporter.Tests
             Assert.Equal(
                 "SQL_SERVER_CERT_PATH",
                 authentication.AzureCredential.CertificatePathEnvironmentVariable);
+        }
+
+        [Fact]
+        public void BackfillDefaultsToDryRunEvenWhenStorageOptionsArePresent()
+        {
+            var options = ExporterCommandLine.Parse(
+            [
+                "backfill",
+                "--sql-connection-string-environment-variable", "TREND_SQL",
+                "--benchmarks-commit", "benchmarks-hash",
+                "--crank-version", "crank-version",
+                "--azdo-project", "internal",
+                "--azdo-pipeline", "aspnet-benchmarks",
+                "--azdo-build-url-template",
+                "https://dev.azure.com/example/internal/_build/results?buildId={buildId}",
+                "--storage-account", "account",
+                "--container", "results",
+                "--queue", "resultsqueue"
+            ]);
+
+            var backfill = Assert.IsType<BackfillOptions>(options.Backfill);
+            Assert.True(backfill.DryRun);
+            Assert.False(backfill.Publish);
+            Assert.Null(backfill.PublicationConfirmation);
+            Assert.Equal("account", backfill.StorageAccount);
+        }
+
+        [Fact]
+        public void LiveBackfillRequiresPublishAndExactConfirmation()
+        {
+            string[] baseArguments =
+            [
+                "backfill",
+                "--sql-connection-string-environment-variable", "TREND_SQL",
+                "--benchmarks-commit", "benchmarks-hash",
+                "--crank-version", "crank-version",
+                "--azdo-project", "internal",
+                "--azdo-pipeline", "aspnet-benchmarks",
+                "--azdo-build-url-template",
+                "https://dev.azure.com/example/internal/_build/results?buildId={buildId}",
+                "--storage-account", "account",
+                "--container", "results",
+                "--queue", "resultsqueue",
+                "--publish"
+            ];
+
+            var missing = Assert.Throws<ArgumentException>(() =>
+                ExporterCommandLine.Parse(baseArguments));
+            Assert.Contains(
+                "--confirm-live-publication",
+                missing.Message,
+                StringComparison.Ordinal);
+
+            var wrong = Assert.Throws<ArgumentException>(() =>
+                ExporterCommandLine.Parse(
+                    baseArguments
+                        .Concat(
+                        [
+                            "--confirm-live-publication",
+                            "yes"
+                        ])
+                        .ToArray()));
+            Assert.Contains(
+                BackfillPublicationSafety.Confirmation,
+                wrong.Message,
+                StringComparison.Ordinal);
+
+            var confirmationWithoutPublish =
+                Assert.Throws<ArgumentException>(() =>
+                    ExporterCommandLine.Parse(
+                        baseArguments
+                            .Where(argument => argument != "--publish")
+                            .Concat(
+                            [
+                                "--confirm-live-publication",
+                                BackfillPublicationSafety.Confirmation
+                            ])
+                            .ToArray()));
+            Assert.Contains(
+                "only with the explicit --publish",
+                confirmationWithoutPublish.Message,
+                StringComparison.Ordinal);
+
+            var options = ExporterCommandLine.Parse(
+                baseArguments
+                    .Concat(
+                    [
+                        "--confirm-live-publication",
+                        BackfillPublicationSafety.Confirmation
+                    ])
+                    .ToArray());
+            Assert.True(options.Backfill!.Publish);
+            Assert.False(options.Backfill.DryRun);
         }
     }
 }

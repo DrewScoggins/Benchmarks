@@ -79,6 +79,7 @@ namespace Crank.PerfLabExporter.Backfill
         int BatchSize,
         int? MaximumRows,
         bool DryRun,
+        string? PublicationConfirmation,
         string Table,
         string SqlSourceIdentity,
         string SqlAuthenticationMode,
@@ -111,9 +112,9 @@ namespace Crank.PerfLabExporter.Backfill
                 options.SqlAuthenticationMode,
                 options.MappingFingerprint,
                 options.PolicyFingerprint,
-                options.StorageAccount,
-                options.Container,
-                options.Queue,
+                storageAccount = options.DryRun ? null : options.StorageAccount,
+                container = options.DryRun ? null : options.Container,
+                queue = options.DryRun ? null : options.Queue,
                 identity = new
                 {
                     options.Identity.RuntimeBranch,

@@ -32,12 +32,14 @@ namespace Crank.PerfLabExporter.Tests
             };
             var repository = new FakeLegacyTrendRepository(rows);
             var mapping = BackfillTestData.LoadMapping();
+            var publisher = new FakePerfLabPublisher();
             var runner = BackfillTestData.CreateRunner(
                 repository,
                 mapping,
                 directory,
                 new FixedCommitTimeResolver(
                     DateTimeOffset.Parse("2026-08-18T09:30:00Z")),
+                publisher,
                 clock: new FixedBackfillClock(now));
             var options = BackfillTestData.CreateOptions(
                 directory,
@@ -45,7 +47,12 @@ namespace Crank.PerfLabExporter.Tests
                 startUtc: null,
                 endUtc: null,
                 dryRun: true,
-                batchSize: 2);
+                batchSize: 2) with
+            {
+                StorageAccount = "account",
+                Container = "results",
+                Queue = "resultsqueue"
+            };
 
             var summary = await runner.RunAsync(
                 options,
@@ -58,6 +65,7 @@ namespace Crank.PerfLabExporter.Tests
             Assert.Equal(3, summary.Converted);
             Assert.Equal(3, summary.DryRunValidated);
             Assert.Equal(0, summary.Uploaded);
+            Assert.Equal(0, publisher.Attempts);
             Assert.True(repository.Queries.Count >= 2);
             Assert.All(repository.Queries, query =>
             {
@@ -84,6 +92,45 @@ namespace Crank.PerfLabExporter.Tests
                     .Distinct()
                     .ToArray());
             Assert.True(File.Exists(options.CheckpointPath));
+        }
+
+        [Fact]
+        public async Task RejectsLiveRunnerWithoutConfirmationBeforeAnyIo()
+        {
+            using var directory = new TemporaryDirectory();
+            var timestamp =
+                DateTimeOffset.Parse("2026-08-19T10:00:00Z");
+            var repository = new FakeLegacyTrendRepository(
+                [BackfillTestData.CreateRow(7, timestamp)]);
+            var mapping = BackfillTestData.LoadMapping();
+            var publisher = new FakePerfLabPublisher();
+            var runner = BackfillTestData.CreateRunner(
+                repository,
+                mapping,
+                directory,
+                new FixedCommitTimeResolver(
+                    DateTimeOffset.Parse("2026-08-18T09:30:00Z")),
+                publisher);
+            var options = BackfillTestData.CreateOptions(
+                directory,
+                mapping,
+                timestamp.AddMinutes(-1),
+                timestamp.AddMinutes(1),
+                dryRun: false) with
+            {
+                PublicationConfirmation = null
+            };
+
+            var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
+                runner.RunAsync(options, CancellationToken.None));
+
+            Assert.Contains(
+                "--confirm-live-publication",
+                exception.Message,
+                StringComparison.Ordinal);
+            Assert.Empty(repository.Queries);
+            Assert.Equal(0, publisher.Attempts);
+            Assert.False(File.Exists(options.CheckpointPath));
         }
 
         [Fact]

@@ -87,6 +87,12 @@ Crank or SQL. `Document` is deserialized as the historical Crank `JobResults`
 payload, wrapped with return code `0`, and passed through the same converter,
 validator, naming, and publisher used by live Trend.
 
+Backfill is fail-safe: it defaults to convert-only dry-run even when storage
+options are present. Live publication is enabled only when both `--publish`
+and the exact guard
+`--confirm-live-publication PUBLISH_TREND_BACKFILL` are supplied. Supplying
+storage account, container, queue, or credentials alone never sends data.
+
 The version-controlled
 [`build/trend-perflab-legacy-mapping.json`](../../build/trend-perflab-legacy-mapping.json)
 contains ordered, explicit lane and scenario-family rules. Lane matching uses
@@ -139,6 +145,8 @@ dotnet run --project src\Crank.PerfLabExporter -- backfill `
   --azdo-project <project fallback> `
   --azdo-pipeline <pipeline fallback> `
   --azdo-build-url-template 'https://dev.azure.com/<org>/<project>/_build/results?buildId={buildId}' `
+  --publish `
+  --confirm-live-publication PUBLISH_TREND_BACKFILL `
   --storage-account pvscmdupload `
   --container results `
   --queue resultsqueue `
@@ -146,6 +154,11 @@ dotnet run --project src\Crank.PerfLabExporter -- backfill `
   --summary artifacts\trend-backfill-live.summary.json `
   --output-directory artifacts\trend-backfill
 ```
+
+The live command above is an operator runbook only. It was intentionally not
+executed while implementing or validating this feature. Tests use fake SQL
+repositories, publishers, and commit-time resolvers and do not contact SQL,
+GitHub, Azure Storage, or queues.
 
 SQL authentication modes are `connection-string`, `default`,
 `managed-identity`, `certificate`, and `token`. Token mode reads only the

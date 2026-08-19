@@ -75,6 +75,9 @@ namespace Crank.PerfLabExporter.Backfill
                     "The maximum row count must be positive when supplied.");
             }
 
+            BackfillPublicationSafety.Validate(
+                publish: !options.DryRun,
+                confirmation: options.PublicationConfirmation);
             if (!options.DryRun && _publisher is null)
             {
                 throw new InvalidOperationException(

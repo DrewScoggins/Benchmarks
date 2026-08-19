@@ -93,7 +93,10 @@ namespace Crank.PerfLabExporter.CommandLine
                                                               90 days, fixed in the checkpoint).
               --batch-size <count>                             SQL page size (default: 100).
               --maximum-rows <count>                           Optional maximum scanned rows.
-              --dry-run|--convert-only                         Convert and validate without publication.
+              --dry-run|--convert-only                         Explicit convert-only mode (also the default).
+              --publish                                       Explicitly opt in to live blob/queue publication.
+              --confirm-live-publication PUBLISH_TREND_BACKFILL
+                                                              Required exact confirmation with --publish.
               --checkpoint <path>                              Atomic resume checkpoint.
               --summary <path>                                 Machine-readable summary JSON.
               --legacy-mapping <path>                          Ordered lane/scenario rules (default:
@@ -126,6 +129,7 @@ namespace Crank.PerfLabExporter.CommandLine
 
             Authentication uses DefaultAzureCredential unless certificate inputs are supplied.
             Credential secrets and GitHub tokens are read from environment variables and are never logged.
+            Backfill defaults to dry-run. Storage options alone never enable publication.
             Blob uploads overwrite the deterministic name; rerunning the same export is idempotent.
             """;
 
@@ -315,9 +319,22 @@ namespace Crank.PerfLabExporter.CommandLine
                     maximumRowsValue,
                     defaultValue: 1,
                     "--maximum-rows");
-            var dryRun =
+            var explicitDryRun =
                 values.Remove("--dry-run") |
                 values.Remove("--convert-only");
+            var publish = values.Remove("--publish");
+            if (publish && explicitDryRun)
+            {
+                throw new ArgumentException(
+                    "Use either --publish or --dry-run/--convert-only, not both.");
+            }
+
+            var publicationConfirmation =
+                TakeOptional(values, "--confirm-live-publication");
+            BackfillPublicationSafety.Validate(
+                publish,
+                publicationConfirmation);
+            var dryRun = !publish;
             var outputDirectory =
                 TakeOptional(values, "--output-directory") ??
                 Environment.CurrentDirectory;
@@ -483,7 +500,8 @@ namespace Crank.PerfLabExporter.CommandLine
                     EndUtc = endUtc,
                     BatchSize = batchSize,
                     MaximumRows = maximumRows,
-                    DryRun = dryRun,
+                    Publish = publish,
+                    PublicationConfirmation = publicationConfirmation,
                     CounterPolicyPath = counterPolicy,
                     MappingPath = mappingPath,
                     OutputDirectory = outputDirectory,
@@ -583,7 +601,7 @@ namespace Crank.PerfLabExporter.CommandLine
             for (var index = 0; index < args.Length; index++)
             {
                 var option = args[index];
-                if (option is "-h" or "--help" or "--dry-run" or "--convert-only")
+                if (option is "-h" or "--help" or "--dry-run" or "--convert-only" or "--publish")
                 {
                     if (!values.TryAdd(option, null))
                     {

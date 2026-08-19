@@ -135,6 +135,9 @@ namespace Crank.PerfLabExporter
             BackfillOptions options,
             CancellationToken cancellationToken)
         {
+            BackfillPublicationSafety.Validate(
+                publish: options.Publish,
+                confirmation: options.PublicationConfirmation);
             var policyPath = ResolveInputPath(options.CounterPolicyPath);
             var mappingPath = ResolveInputPath(options.MappingPath);
             var serializerOptions = ContractJson.CreateSerializerOptions();
@@ -175,7 +178,7 @@ namespace Crank.PerfLabExporter
                 new CachingCommitTimeResolver(
                     new GitHubCommitTimeResolver(httpClient, githubToken)));
             IPerfLabPublisher? publisher = null;
-            if (!options.DryRun)
+            if (options.Publish)
             {
                 var endpoints = StorageAccountEndpoints.Parse(
                     options.StorageAccount!);
@@ -211,6 +214,7 @@ namespace Crank.PerfLabExporter
                     options.BatchSize,
                     options.MaximumRows,
                     options.DryRun,
+                    options.PublicationConfirmation,
                     table.CanonicalName,
                     SqlConnectionStringResolver.CreateSourceIdentity(
                         connectionString),
