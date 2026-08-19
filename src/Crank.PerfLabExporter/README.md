@@ -80,6 +80,94 @@ one independent result value per scalar and records that sample model in test
 additional data. Timestamped `measurements` are never treated as independent
 PerfLab samples.
 
+## Backfill legacy Trend history
+
+The `backfill` command reads legacy `TrendBenchmarks` rows without changing
+Crank or SQL. `Document` is deserialized as the historical Crank `JobResults`
+payload, wrapped with return code `0`, and passed through the same converter,
+validator, naming, and publisher used by live Trend.
+
+The version-controlled
+[`build/trend-perflab-legacy-mapping.json`](../../build/trend-perflab-legacy-mapping.json)
+contains ordered, explicit lane and scenario-family rules. Lane matching uses
+historical profile or description metadata; scenario matching uses the
+canonical SQL/JobResults `scenario` metadata or explicit historical
+description aliases. Zero or multiple matches are reported as unresolved.
+There is no default lane or family. Review and version this file before
+backfilling a historical period whose lanes, framework, or scenarios differ.
+
+Dry-run runbook:
+
+```powershell
+$env:TREND_SQL_CONNECTION_STRING = '<Azure SQL connection string>'
+
+dotnet run --project src\Crank.PerfLabExporter -- backfill `
+  --sql-connection-string-environment-variable TREND_SQL_CONNECTION_STRING `
+  --sql-table dbo.TrendBenchmarks `
+  --sql-authentication certificate `
+  --sql-tenant-id-environment-variable SQL_SERVER_TENANTID `
+  --sql-client-id-environment-variable SQL_SERVER_CLIENTID `
+  --sql-certificate-path-environment-variable SQL_SERVER_CERT_PATH `
+  --dry-run `
+  --benchmarks-commit <Benchmarks commit fallback> `
+  --crank-version <Crank version fallback> `
+  --azdo-project <project fallback> `
+  --azdo-pipeline <pipeline fallback> `
+  --azdo-build-url-template 'https://dev.azure.com/<org>/<project>/_build/results?buildId={buildId}' `
+  --checkpoint artifacts\trend-backfill-dry-run.checkpoint.json `
+  --summary artifacts\trend-backfill-dry-run.summary.json `
+  --output-directory artifacts\trend-backfill
+```
+
+`--convert-only` is an alias for `--dry-run`. The default inclusive window is
+the latest 90 days. Its resolved start/end are saved in the checkpoint so a
+later restart uses the same window. Use `--start-utc` and `--end-utc` for
+explicit inclusive UTC bounds, `--batch-size` for SQL paging, and
+`--maximum-rows` for a bounded validation pass.
+
+After reviewing every unresolved/failed row in the summary, use a different
+live checkpoint:
+
+```powershell
+dotnet run --project src\Crank.PerfLabExporter -- backfill `
+  --sql-connection-string-environment-variable TREND_SQL_CONNECTION_STRING `
+  --sql-table dbo.TrendBenchmarks `
+  --sql-authentication managed-identity `
+  --sql-managed-identity-client-id-environment-variable SQL_MANAGED_IDENTITY_CLIENT_ID `
+  --benchmarks-commit <Benchmarks commit fallback> `
+  --crank-version <Crank version fallback> `
+  --azdo-project <project fallback> `
+  --azdo-pipeline <pipeline fallback> `
+  --azdo-build-url-template 'https://dev.azure.com/<org>/<project>/_build/results?buildId={buildId}' `
+  --storage-account pvscmdupload `
+  --container results `
+  --queue resultsqueue `
+  --checkpoint artifacts\trend-backfill-live.checkpoint.json `
+  --summary artifacts\trend-backfill-live.summary.json `
+  --output-directory artifacts\trend-backfill
+```
+
+SQL authentication modes are `connection-string`, `default`,
+`managed-identity`, `certificate`, and `token`. Token mode reads only the
+environment variable named by `--sql-access-token-environment-variable`.
+Connection strings, access tokens, certificate passwords, and document JSON
+are never written to logs or summaries.
+
+Rows are paged by `DateTimeUtc, Id`; excluded rows are counted and skipped.
+Each SQL row has a stable blob name under `crank/sql/`, so a retry overwrites
+the same blob before queue submission. The atomic checkpoint stores the
+mapping/configuration fingerprint and last completed timestamp/ID. A changed
+mapping, window, identity fallback, dry-run/live mode, or publication target
+is rejected as incompatible. A failed or unresolved row blocks checkpoint
+progress past that row; later work is safe to repeat.
+
+The summary JSON reports `scanned`, `excluded`, `converted`, `uploaded`,
+`dryRunValidated`, `unresolved`, and `failed`, plus only row IDs and sanitized
+reasons. Historical SQL identity, scenario, description, and insertion time
+are retained under `historical.known.*`; operator fallbacks are separately
+marked under `historical.fallback.*`. PerfLab build time always comes from the
+resolved runtime commit, never SQL insertion or session time.
+
 ## Upload
 
 ```powershell
@@ -96,8 +184,9 @@ dotnet run --project src\Crank.PerfLabExporter -- upload `
 Authentication uses `DefaultAzureCredential` and supports a user-assigned
 managed identity with `--managed-identity-client-id` or its environment
 variable form. Certificate workers can instead pass tenant/client IDs (or
-environment variable names for them) plus `--certificate-path`, or name an
-environment variable containing a base64 PFX with
+environment variable names for them) plus `--certificate-path` (or an
+environment variable containing that path), or name an environment variable
+containing a base64 PFX with
 `--certificate-base64-environment-variable`. Certificate passwords are read
 only from the named environment variable.
 

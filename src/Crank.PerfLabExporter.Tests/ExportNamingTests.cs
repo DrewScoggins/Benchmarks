@@ -35,5 +35,27 @@ namespace Crank.PerfLabExporter.Tests
 
             Assert.NotEqual(first, second);
         }
+
+        [Fact]
+        public void SqlRowIdentityIsStableAcrossResolvedMetadataChanges()
+        {
+            var report = ContractTestData.CreateValidReport();
+            var identity = ContractTestData.CreateValidIdentity();
+            identity.Sql.Table = "TrendBenchmarks";
+            identity.Sql.RecordId = "123";
+            var first = ExportNaming.Create(report, identity);
+
+            report.Build.TimeStamp = report.Build.TimeStamp.AddDays(1);
+            report.Run.Name = "changed-family";
+            report.Run.Queue = "changed-queue";
+            identity.Sql.Session = "changed-session";
+            var second = ExportNaming.Create(report, identity);
+
+            Assert.Equal(first, second);
+            Assert.StartsWith(
+                "crank/sql/trendbenchmarks/",
+                first.BlobName,
+                StringComparison.Ordinal);
+        }
     }
 }

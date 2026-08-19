@@ -15,6 +15,12 @@ namespace Crank.PerfLabExporter.Naming
     {
         public static ExportNames Create(PerfLabReport report, ExportIdentity identity)
         {
+            if (!string.IsNullOrWhiteSpace(identity.Sql.Table) &&
+                !string.IsNullOrWhiteSpace(identity.Sql.RecordId))
+            {
+                return CreateSqlRowNames(identity.Sql.Table, identity.Sql.RecordId);
+            }
+
             var test = report.Tests.Single();
             var canonicalIdentity = string.Join(
                 "\n",
@@ -56,6 +62,19 @@ namespace Crank.PerfLabExporter.Naming
             var queue = Slug(report.Run.Queue, 64);
             var fileName = $"{family}-{scenario}-{runtimeHash}-{identityHash}.perflab.json";
             var blobName = $"crank/{family}/{queue}/{runtimeHash}/{fileName}";
+            return new ExportNames(fileName, blobName);
+        }
+
+        private static ExportNames CreateSqlRowNames(string table, string recordId)
+        {
+            var canonicalIdentity = $"{table.Trim().ToLowerInvariant()}\n{recordId.Trim()}";
+            var identityHash = Convert.ToHexString(
+                SHA256.HashData(Encoding.UTF8.GetBytes(canonicalIdentity)))[..16]
+                .ToLowerInvariant();
+            var tableSlug = Slug(table, 64);
+            var recordSlug = Slug(recordId, 64);
+            var fileName = $"{tableSlug}-{recordSlug}-{identityHash}.perflab.json";
+            var blobName = $"crank/sql/{tableSlug}/{identityHash}/{fileName}";
             return new ExportNames(fileName, blobName);
         }
 

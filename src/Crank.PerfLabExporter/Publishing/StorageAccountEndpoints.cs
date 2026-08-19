@@ -62,7 +62,8 @@ namespace Crank.PerfLabExporter.Publishing
                 !string.IsNullOrEmpty(uri.Query) ||
                 !string.IsNullOrEmpty(uri.Fragment))
             {
-                throw new ArgumentException($"'{value}' is not a valid HTTPS storage service URI.");
+                throw new ArgumentException(
+                    "The storage service URI is not a valid HTTPS URI without query or fragment data.");
             }
 
             return ServiceRoot(uri);

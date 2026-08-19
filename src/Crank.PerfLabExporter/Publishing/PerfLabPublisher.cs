@@ -35,7 +35,17 @@ namespace Crank.PerfLabExporter.Publishing
         }
     }
 
-    public sealed class PerfLabPublisher
+    public interface IPerfLabPublisher
+    {
+        Task<string> PublishAsync(
+            string container,
+            string queue,
+            string blobName,
+            ReadOnlyMemory<byte> content,
+            CancellationToken cancellationToken = default);
+    }
+
+    public sealed class PerfLabPublisher : IPerfLabPublisher
     {
         private readonly IPerfLabStorageClient _storageClient;
         private readonly PublicationRetryOptions _retryOptions;

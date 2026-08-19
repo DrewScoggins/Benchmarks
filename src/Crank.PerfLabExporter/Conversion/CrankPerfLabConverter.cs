@@ -17,6 +17,12 @@ namespace Crank.PerfLabExporter.Conversion
         PerfLabReport Report,
         IReadOnlyList<string> Diagnostics);
 
+    public sealed record CrankConversionOptions(
+        bool ValidateScenarioProperty)
+    {
+        public static CrankConversionOptions Default { get; } = new(true);
+    }
+
     public sealed class CrankPerfLabConverter
     {
         private const string SampleModel = "single-aggregate-from-crank-json";
@@ -34,9 +40,29 @@ namespace Crank.PerfLabExporter.Conversion
             ExportSourceMetadata source,
             CancellationToken cancellationToken = default)
         {
+            return await ConvertAsync(
+                execution,
+                policy,
+                identity,
+                source,
+                CrankConversionOptions.Default,
+                cancellationToken);
+        }
+
+        public async Task<CrankConversionResult> ConvertAsync(
+            CrankExecutionResult execution,
+            CounterPolicy policy,
+            ExportIdentity identity,
+            ExportSourceMetadata source,
+            CrankConversionOptions options,
+            CancellationToken cancellationToken = default)
+        {
             CounterPolicyValidator.ValidateAndThrow(policy);
             ExportIdentityValidator.ValidateAndThrow(identity);
-            ValidateCrankProperties(execution, identity);
+            ValidateCrankProperties(
+                execution,
+                identity,
+                options.ValidateScenarioProperty);
 
             var resolution = CrankDependencyResolver.Resolve(execution, identity);
             var enumeration = CrankScalarEnumerator.Enumerate(execution);
@@ -175,11 +201,15 @@ namespace Crank.PerfLabExporter.Conversion
 
         private static void ValidateCrankProperties(
             CrankExecutionResult execution,
-            ExportIdentity identity)
+            ExportIdentity identity,
+            bool validateScenarioProperty)
         {
             ValidateProperty("buildId", identity.AzureDevOps.BuildId, "Azure DevOps build ID");
             ValidateProperty("buildNumber", identity.AzureDevOps.BuildNumber, "Azure DevOps build number");
-            ValidateProperty("scenario", identity.Scenario.Name, "scenario");
+            if (validateScenarioProperty)
+            {
+                ValidateProperty("scenario", identity.Scenario.Name, "scenario");
+            }
 
             void ValidateProperty(string name, string expected, string description)
             {

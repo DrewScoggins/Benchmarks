@@ -10,7 +10,7 @@
     <PackAsTool>true</PackAsTool>
     <PackageId>Crank.PerfLabExporter</PackageId>
     <ToolCommandName>crank-perflab-export</ToolCommandName>
-    <Description>External Crank adapter for canonical PerfLab conversion and upload.</Description>
+    <Description>External Crank adapter for canonical PerfLab conversion, upload, and legacy Trend backfill.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
@@ -18,11 +18,16 @@
     <PackageReference Include="Azure.Identity" Version="$(AzureIdentityVersion)" />
     <PackageReference Include="Azure.Storage.Blobs" Version="$(AzureStorageBlobsVersion)" />
     <PackageReference Include="Azure.Storage.Queues" Version="$(AzureStorageQueuesVersion)" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="$(MicrosoftDataSqlClientVersion90)" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="..\..\build\crank-perflab-counter-policy.json"
           Link="crank-perflab-counter-policy.json"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest" />
+    <None Include="..\..\build\trend-perflab-legacy-mapping.json"
+          Link="trend-perflab-legacy-mapping.json"
           CopyToOutputDirectory="PreserveNewest"
           CopyToPublishDirectory="PreserveNewest" />
     <None Update="README.md"

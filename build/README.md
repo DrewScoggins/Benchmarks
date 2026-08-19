@@ -86,6 +86,13 @@ rejection, fortunes, single query, multiple queries, updates, and caching.
 `testName` remains the individual PerfLab `Test.Name`; `family` becomes
 `Run.Name`.
 
+[`trend-perflab-legacy-mapping.json`](trend-perflab-legacy-mapping.json)
+is the deterministic operational map used by the external exporter's
+`backfill` command. It matches legacy profile/description/scenario metadata to
+the same lane, queue, OS, configurations, test, and family identities used by
+the live templates. Rules are ordered, and an unresolved or ambiguous row is
+reported rather than assigned a fallback lane or family.
+
 For Trend jobs, the source configs define a raw GitHub base URL pinned to
 `$(Build.SourceVersion)`. The generator passes that base explicitly and emits
 the pinned CI profile URL; the Trend templates build every Benchmarks-owned

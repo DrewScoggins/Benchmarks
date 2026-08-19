@@ -24,6 +24,8 @@ namespace Crank.PerfLabExporter.Publishing
 
         public string? CertificatePath { get; init; }
 
+        public string? CertificatePathEnvironmentVariable { get; init; }
+
         public string? CertificateBase64EnvironmentVariable { get; init; }
 
         public string? CertificatePasswordEnvironmentVariable { get; init; }
@@ -45,8 +47,12 @@ namespace Crank.PerfLabExporter.Publishing
                 options.ClientId,
                 options.ClientIdEnvironmentVariable,
                 "client ID");
+            var certificatePath = ResolveDirectOrEnvironment(
+                options.CertificatePath,
+                options.CertificatePathEnvironmentVariable,
+                "certificate path");
             var usesCertificate =
-                !string.IsNullOrWhiteSpace(options.CertificatePath) ||
+                !string.IsNullOrWhiteSpace(certificatePath) ||
                 !string.IsNullOrWhiteSpace(options.CertificateBase64EnvironmentVariable);
             if (!usesCertificate)
             {
@@ -71,9 +77,9 @@ namespace Crank.PerfLabExporter.Publishing
                 SendCertificateChain = true
             };
 
-            if (!string.IsNullOrWhiteSpace(options.CertificatePath))
+            if (!string.IsNullOrWhiteSpace(certificatePath))
             {
-                var certificatePath = Path.GetFullPath(options.CertificatePath);
+                certificatePath = Path.GetFullPath(certificatePath);
                 var extension = Path.GetExtension(certificatePath);
                 X509Certificate2 pathCertificate;
                 if (extension.Equals(".pem", StringComparison.OrdinalIgnoreCase))

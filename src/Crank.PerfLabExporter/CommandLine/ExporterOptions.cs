@@ -9,7 +9,8 @@ namespace Crank.PerfLabExporter.CommandLine
     internal enum ExportMode
     {
         Convert,
-        Upload
+        Upload,
+        Backfill
     }
 
     internal enum IdentitySource
@@ -79,6 +80,96 @@ namespace Crank.PerfLabExporter.CommandLine
         public string? HelixCorrelationId { get; init; }
     }
 
+    internal enum SqlAuthenticationMode
+    {
+        ConnectionString,
+        DefaultAzureCredential,
+        ManagedIdentity,
+        Certificate,
+        AccessToken
+    }
+
+    internal sealed class SqlAuthenticationOptions
+    {
+        public SqlAuthenticationMode Mode { get; init; }
+
+        public string? AccessTokenEnvironmentVariable { get; init; }
+
+        public StorageAuthenticationOptions AzureCredential { get; init; } = new();
+    }
+
+    internal sealed class BackfillIdentityOptions
+    {
+        public string RuntimeBranch { get; init; } = "main";
+
+        public string BenchmarksCommit { get; init; } = string.Empty;
+
+        public string CrankVersion { get; init; } = string.Empty;
+
+        public string AzureDevOpsProject { get; init; } = string.Empty;
+
+        public string AzureDevOpsPipeline { get; init; } = string.Empty;
+
+        public string? AzureDevOpsBuildId { get; init; }
+
+        public string? AzureDevOpsBuildNumber { get; init; }
+
+        public string AzureDevOpsBuildUrlTemplate { get; init; } = string.Empty;
+
+        public string? RuntimeArtifactId { get; init; }
+    }
+
+    internal sealed class BackfillOptions
+    {
+        public string ConnectionString { get; init; } = string.Empty;
+
+        public string? ConnectionStringEnvironmentVariable { get; init; }
+
+        public string Table { get; init; } = "TrendBenchmarks";
+
+        public DateTimeOffset? StartUtc { get; init; }
+
+        public DateTimeOffset? EndUtc { get; init; }
+
+        public int BatchSize { get; init; } = 100;
+
+        public int? MaximumRows { get; init; }
+
+        public bool DryRun { get; init; }
+
+        public string CounterPolicyPath { get; init; } =
+            "crank-perflab-counter-policy.json";
+
+        public string MappingPath { get; init; } =
+            "trend-perflab-legacy-mapping.json";
+
+        public string OutputDirectory { get; init; } = Environment.CurrentDirectory;
+
+        public string CheckpointPath { get; init; } = string.Empty;
+
+        public string SummaryPath { get; init; } = string.Empty;
+
+        public string GitHubTokenEnvironmentVariable { get; init; } = "GITHUB_TOKEN";
+
+        public BackfillIdentityOptions Identity { get; init; } = new();
+
+        public SqlAuthenticationOptions SqlAuthentication { get; init; } = new();
+
+        public PublicationRetryOptions SqlRetry { get; init; } =
+            PublicationRetryOptions.Default;
+
+        public string? StorageAccount { get; init; }
+
+        public string? Container { get; init; }
+
+        public string? Queue { get; init; }
+
+        public StorageAuthenticationOptions Authentication { get; init; } = new();
+
+        public PublicationRetryOptions Retry { get; init; } =
+            PublicationRetryOptions.Default;
+    }
+
     internal sealed class ExporterOptions
     {
         public ExportMode Mode { get; init; }
@@ -108,5 +199,7 @@ namespace Crank.PerfLabExporter.CommandLine
         public StorageAuthenticationOptions Authentication { get; init; } = new();
 
         public PublicationRetryOptions Retry { get; init; } = PublicationRetryOptions.Default;
+
+        public BackfillOptions? Backfill { get; init; }
     }
 }

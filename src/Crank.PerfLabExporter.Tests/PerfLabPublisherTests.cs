@@ -74,6 +74,18 @@ namespace Crank.PerfLabExporter.Tests
             Assert.Equal(2, storage.QueueAttempts);
         }
 
+        [Fact]
+        public void InvalidStorageUriDoesNotEchoQuerySecrets()
+        {
+            const string marker = "sensitive-marker";
+
+            var exception = Assert.Throws<ArgumentException>(() =>
+                StorageAccountEndpoints.Parse(
+                    $"https://account.blob.core.windows.net/?sig={marker}"));
+
+            Assert.DoesNotContain(marker, exception.Message, StringComparison.Ordinal);
+        }
+
         private sealed class StubStorageClient : IPerfLabStorageClient
         {
             public int UploadFailuresRemaining { get; set; }

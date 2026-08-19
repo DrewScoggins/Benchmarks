@@ -1,0 +1,787 @@
+{
+  "schemaVersion": 1,
+  "defaultConfigurations": {
+    "Framework": "net11.0",
+    "Runtime": "CoreCLR",
+    "Configuration": "Release"
+  },
+  "laneRules": [
+    {
+      "id": "gold-lin",
+      "matchAny": [
+        {
+          "source": "profile",
+          "equals": "gold-lin-app"
+        },
+        {
+          "source": "description",
+          "regex": "(?:^|\\s)gold-lin(?:\\s|$)"
+        }
+      ],
+      "name": "aspnet-gold-linux-x64",
+      "queue": "Ubuntu.2204.Amd64.AspNetGold.Perf",
+      "os": "Ubuntu 22.04",
+      "architecture": "x64",
+      "locale": "en-US",
+      "cores": 56,
+      "hardware": "AspNetGold"
+    },
+    {
+      "id": "gold-win",
+      "matchAny": [
+        {
+          "source": "profile",
+          "equals": "gold-win-app"
+        },
+        {
+          "source": "description",
+          "regex": "(?:^|\\s)gold-win(?:\\s|$)"
+        }
+      ],
+      "name": "aspnet-gold-windows-x64",
+      "queue": "Windows.Server2022.Amd64.AspNetGold.Perf",
+      "os": "Windows Server 2022",
+      "architecture": "x64",
+      "locale": "en-US",
+      "cores": 56,
+      "hardware": "AspNetGold"
+    },
+    {
+      "id": "azure-arm64",
+      "matchAny": [
+        {
+          "source": "profile",
+          "equals": "azure-server-arm64-app"
+        },
+        {
+          "source": "description",
+          "regex": "(?:^|\\s)azure-arm64(?:\\s|$)"
+        }
+      ],
+      "name": "aspnet-azure-arm64",
+      "queue": "Ubuntu.2204.Arm64.AspNetAzure.Perf",
+      "os": "Ubuntu 22.04",
+      "architecture": "arm64",
+      "locale": "en-US",
+      "cores": 4,
+      "hardware": "AspNetAzure"
+    },
+    {
+      "id": "azure2-amd64",
+      "matchAny": [
+        {
+          "source": "profile",
+          "equals": "azure2-server-amd64-app"
+        },
+        {
+          "source": "description",
+          "regex": "(?:^|\\s)azure2-amd64(?:\\s|$)"
+        }
+      ],
+      "name": "aspnet-azure-amd64",
+      "queue": "Ubuntu.2204.Amd64.AspNetAzure2.Perf",
+      "os": "Ubuntu 22.04",
+      "architecture": "x64",
+      "locale": "en-US",
+      "cores": 4,
+      "hardware": "AspNetAzure2"
+    },
+    {
+      "id": "cobalt-cloud-lin",
+      "matchAny": [
+        {
+          "source": "profile",
+          "equals": "cobalt-cloud-lin-server-app"
+        },
+        {
+          "source": "description",
+          "regex": "(?:^|\\s)cobalt-cloud-lin(?:\\s|$)"
+        }
+      ],
+      "name": "aspnet-cobalt-cloud-linux-x64",
+      "queue": "Ubuntu.2204.Amd64.AspNetCobaltCloud.Perf",
+      "os": "Ubuntu 22.04",
+      "architecture": "x64",
+      "locale": "en-US",
+      "cores": 16,
+      "hardware": "AspNetCobaltCloud"
+    },
+    {
+      "id": "cobalt-cloud-lin-azl3",
+      "matchAny": [
+        {
+          "source": "profile",
+          "equals": "cobalt-cloud-lin-server-azure-linux3-app"
+        },
+        {
+          "source": "description",
+          "regex": "(?:^|\\s)cobalt-cloud-lin-azl3(?:-dual)?(?:\\s|$)"
+        }
+      ],
+      "name": "aspnet-cobalt-cloud-azurelinux3-x64",
+      "queue": "AzureLinux.3.Amd64.AspNetCobaltCloud.Perf",
+      "os": "Azure Linux 3.0",
+      "architecture": "x64",
+      "locale": "en-US",
+      "cores": 16,
+      "hardware": "AspNetCobaltCloud"
+    },
+    {
+      "id": "idna-amd-lin",
+      "matchAny": [
+        {
+          "source": "profile",
+          "equals": "idna-amd-lin-app"
+        },
+        {
+          "source": "description",
+          "regex": "(?:^|\\s)idna-amd-lin(?:\\s|$)"
+        }
+      ],
+      "name": "aspnet-idna-amd-linux-x64",
+      "queue": "Ubuntu.2204.Amd64.AspNetIdnaAmd.Perf",
+      "os": "Ubuntu 22.04",
+      "architecture": "x64",
+      "locale": "en-US",
+      "cores": 4,
+      "hardware": "AspNetIdnaAmd"
+    },
+    {
+      "id": "idna-amd-win",
+      "matchAny": [
+        {
+          "source": "profile",
+          "equals": "idna-amd-win-app"
+        },
+        {
+          "source": "description",
+          "regex": "(?:^|\\s)idna-amd-win(?:\\s|$)"
+        }
+      ],
+      "name": "aspnet-idna-amd-windows-x64",
+      "queue": "Windows.Server2022.Amd64.AspNetIdnaAmd.Perf",
+      "os": "Windows Server 2022",
+      "architecture": "x64",
+      "locale": "en-US",
+      "cores": 4,
+      "hardware": "AspNetIdnaAmd"
+    },
+    {
+      "id": "idna-intel-lin",
+      "matchAny": [
+        {
+          "source": "profile",
+          "equals": "idna-intel-lin-app"
+        },
+        {
+          "source": "description",
+          "regex": "(?:^|\\s)idna-intel-lin(?:\\s|$)"
+        }
+      ],
+      "name": "aspnet-idna-intel-linux-x64",
+      "queue": "Ubuntu.2204.Amd64.AspNetIdnaIntel.Perf",
+      "os": "Ubuntu 22.04",
+      "architecture": "x64",
+      "locale": "en-US",
+      "cores": 4,
+      "hardware": "AspNetIdnaIntel"
+    },
+    {
+      "id": "idna-intel-win",
+      "matchAny": [
+        {
+          "source": "profile",
+          "equals": "idna-intel-win-app"
+        },
+        {
+          "source": "description",
+          "regex": "(?:^|\\s)idna-intel-win(?:\\s|$)"
+        }
+      ],
+      "name": "aspnet-idna-intel-windows-x64",
+      "queue": "Windows.Server2022.Amd64.AspNetIdnaIntel.Perf",
+      "os": "Windows Server 2022",
+      "architecture": "x64",
+      "locale": "en-US",
+      "cores": 4,
+      "hardware": "AspNetIdnaIntel"
+    },
+    {
+      "id": "cobalt-hosted-lin",
+      "matchAny": [
+        {
+          "source": "profile",
+          "equals": "cobalt-hosted-lin-server-app"
+        },
+        {
+          "source": "description",
+          "regex": "(?:^|\\s)cobalt-hosted-lin(?:\\s|$)"
+        }
+      ],
+      "name": "aspnet-cobalt-hosted-linux-x64",
+      "queue": "Ubuntu.2204.Amd64.AspNetCobaltHosted.Perf",
+      "os": "Ubuntu 22.04",
+      "architecture": "x64",
+      "locale": "en-US",
+      "cores": 56,
+      "hardware": "AspNetCobaltHosted"
+    },
+    {
+      "id": "cobalt-hosted-lin-azl3",
+      "matchAny": [
+        {
+          "source": "profile",
+          "equals": "cobalt-hosted-lin-server-azure-linux3-app"
+        },
+        {
+          "source": "description",
+          "regex": "(?:^|\\s)cobalt-hosted-lin-azl3(?:\\s|$)"
+        }
+      ],
+      "name": "aspnet-cobalt-hosted-azurelinux3-x64",
+      "queue": "AzureLinux.3.Amd64.AspNetCobaltHosted.Perf",
+      "os": "Azure Linux 3.0",
+      "architecture": "x64",
+      "locale": "en-US",
+      "cores": 56,
+      "hardware": "AspNetCobaltHosted"
+    },
+    {
+      "id": "cobalt-hosted-lin-28",
+      "matchAny": [
+        {
+          "source": "profile",
+          "equals": "cobalt-hosted-lin-server-28-app"
+        },
+        {
+          "source": "description",
+          "regex": "(?:^|\\s)cobalt-hosted-lin-28(?:\\s|$)"
+        }
+      ],
+      "name": "aspnet-cobalt-hosted-linux-x64",
+      "queue": "Ubuntu.2204.Amd64.AspNetCobaltHosted.Perf",
+      "os": "Ubuntu 22.04",
+      "architecture": "x64",
+      "locale": "en-US",
+      "cores": 28,
+      "hardware": "AspNetCobaltHosted"
+    },
+    {
+      "id": "cobalt-hosted-lin-azl3-28",
+      "matchAny": [
+        {
+          "source": "profile",
+          "equals": "cobalt-hosted-lin-server-azure-linux3-28-app"
+        },
+        {
+          "source": "description",
+          "regex": "(?:^|\\s)cobalt-hosted-lin-azl3-28(?:\\s|$)"
+        }
+      ],
+      "name": "aspnet-cobalt-hosted-azurelinux3-x64",
+      "queue": "AzureLinux.3.Amd64.AspNetCobaltHosted.Perf",
+      "os": "Azure Linux 3.0",
+      "architecture": "x64",
+      "locale": "en-US",
+      "cores": 28,
+      "hardware": "AspNetCobaltHosted"
+    }
+  ],
+  "scenarioRules": [
+    {
+      "id": "aspnet-plaintext",
+      "matchAny": [
+        {
+          "source": "scenario",
+          "regex": "^(?:PlaintextPlatform|PlaintextPlatformInline|Plaintext|PlaintextQueryString|PlaintextMvc|PlaintextMinimalApis|PlaintextEndpoint|PlaintextWithParametersNoFilter|PlaintextWithParametersEmptyFilter|PlaintextNoParametersEmptyFilter|PlaintextWithParameterstWithFilter|ConnectionClose|ConnectionCloseHttps|ConnectionCloseHttpSys|ConnectionCloseHttpsHttpSys)$"
+        },
+        {
+          "source": "property",
+          "key": "scenario",
+          "regex": "^(?:PlaintextPlatform|PlaintextPlatformInline|Plaintext|PlaintextQueryString|PlaintextMvc|PlaintextMinimalApis|PlaintextEndpoint|PlaintextWithParametersNoFilter|PlaintextWithParametersEmptyFilter|PlaintextNoParametersEmptyFilter|PlaintextWithParameterstWithFilter|ConnectionClose|ConnectionCloseHttps|ConnectionCloseHttpSys|ConnectionCloseHttpsHttpSys)$"
+        }
+      ],
+      "descriptionMatches": [
+        {
+          "description": "Plaintext Platform",
+          "testName": "PlaintextPlatform"
+        },
+        {
+          "description": "Plaintext Platform Inline",
+          "testName": "PlaintextPlatformInline"
+        },
+        {
+          "description": "Plaintext",
+          "testName": "Plaintext"
+        },
+        {
+          "description": "Plaintext Query String",
+          "testName": "PlaintextQueryString"
+        },
+        {
+          "description": "Plaintext Mvc",
+          "testName": "PlaintextMvc"
+        },
+        {
+          "description": "Plaintext Minimal APIs",
+          "testName": "PlaintextMinimalApis"
+        },
+        {
+          "description": "Plaintext Endpoint",
+          "testName": "PlaintextEndpoint"
+        },
+        {
+          "description": "Plaintext (No Filters)",
+          "testName": "PlaintextWithParametersNoFilter"
+        },
+        {
+          "description": "Plaintext (Empty Filters)",
+          "testName": "PlaintextWithParametersEmptyFilter"
+        },
+        {
+          "description": "Plaintext (Empty Filters, No Parameters)",
+          "testName": "PlaintextNoParametersEmptyFilter"
+        },
+        {
+          "description": "Plaintext (With Filters)",
+          "testName": "PlaintextWithParameterstWithFilter"
+        },
+        {
+          "description": "Plaintext Connection Close",
+          "testName": "ConnectionClose"
+        },
+        {
+          "description": "Plaintext Connection Close Https",
+          "testName": "ConnectionCloseHttps"
+        },
+        {
+          "description": "Plaintext Connection Close HttpSys",
+          "testName": "ConnectionCloseHttpSys"
+        },
+        {
+          "description": "Plaintext Connection Close Https HttpSys",
+          "testName": "ConnectionCloseHttpsHttpSys"
+        }
+      ],
+      "testName": "$scenario",
+      "family": "aspnet-plaintext",
+      "categories": [
+        "aspnet",
+        "plaintext"
+      ],
+      "topology": "SUT+Load"
+    },
+    {
+      "id": "aspnet-json",
+      "matchAny": [
+        {
+          "source": "scenario",
+          "regex": "^(?:JsonPlatform|JsonPlatformInline|Json|JsonHttpSys|JsonIISInProc|JsonIISOutOfProc|JsonHttps|JsonHttpsHttpSys|JsonHttpsIISInProc|JsonHttpsIISOutOfProc|JsonCrossgen2|JsonMvc|JsonMinimalApis|Json5M|Json400k|Json10k)$"
+        },
+        {
+          "source": "property",
+          "key": "scenario",
+          "regex": "^(?:JsonPlatform|JsonPlatformInline|Json|JsonHttpSys|JsonIISInProc|JsonIISOutOfProc|JsonHttps|JsonHttpsHttpSys|JsonHttpsIISInProc|JsonHttpsIISOutOfProc|JsonCrossgen2|JsonMvc|JsonMinimalApis|Json5M|Json400k|Json10k)$"
+        }
+      ],
+      "descriptionMatches": [
+        {
+          "description": "Json Platform",
+          "testName": "JsonPlatform"
+        },
+        {
+          "description": "Json Platform Inline",
+          "testName": "JsonPlatformInline"
+        },
+        {
+          "description": "Json",
+          "testName": "Json"
+        },
+        {
+          "description": "Json HttpSys",
+          "testName": "JsonHttpSys"
+        },
+        {
+          "description": "Json IIS InProc",
+          "testName": "JsonIISInProc"
+        },
+        {
+          "description": "Json IIS OutOfProc",
+          "testName": "JsonIISOutOfProc"
+        },
+        {
+          "description": "Json Https",
+          "testName": "JsonHttps"
+        },
+        {
+          "description": "Json Https HttpSys",
+          "testName": "JsonHttpsHttpSys"
+        },
+        {
+          "description": "Json Https IIS InProc",
+          "testName": "JsonHttpsIISInProc"
+        },
+        {
+          "description": "Json Https IIS OutOfProc",
+          "testName": "JsonHttpsIISOutOfProc"
+        },
+        {
+          "description": "Json Crossgen2",
+          "testName": "JsonCrossgen2"
+        },
+        {
+          "description": "Json Mvc",
+          "testName": "JsonMvc"
+        },
+        {
+          "description": "Json Minimal APIs",
+          "testName": "JsonMinimalApis"
+        },
+        {
+          "description": "Json 5M",
+          "testName": "Json5M"
+        },
+        {
+          "description": "Json 400k",
+          "testName": "Json400k"
+        },
+        {
+          "description": "Json 10k",
+          "testName": "Json10k"
+        }
+      ],
+      "testName": "$scenario",
+      "family": "aspnet-json",
+      "categories": [
+        "aspnet",
+        "json"
+      ],
+      "topology": "SUT+Load"
+    },
+    {
+      "id": "aspnet-antiforgery",
+      "matchAny": [
+        {
+          "source": "scenario",
+          "regex": "^(?:AntiforgeryNoOp|AntiforgeryTokenValidation|AntiforgeryTokenGeneration|AntiforgeryCsrfAccepted|AntiforgeryCsrfRejected)$"
+        },
+        {
+          "source": "property",
+          "key": "scenario",
+          "regex": "^(?:AntiforgeryNoOp|AntiforgeryTokenValidation|AntiforgeryTokenGeneration|AntiforgeryCsrfAccepted|AntiforgeryCsrfRejected)$"
+        }
+      ],
+      "descriptionMatches": [
+        {
+          "description": "Antiforgery No Operation",
+          "testName": "AntiforgeryNoOp"
+        },
+        {
+          "description": "Antiforgery Token Validation",
+          "testName": "AntiforgeryTokenValidation"
+        },
+        {
+          "description": "Antiforgery Token Generation",
+          "testName": "AntiforgeryTokenGeneration"
+        },
+        {
+          "description": "CSRF Accepted",
+          "testName": "AntiforgeryCsrfAccepted"
+        },
+        {
+          "description": "CSRF Rejected",
+          "testName": "AntiforgeryCsrfRejected"
+        }
+      ],
+      "testName": "$scenario",
+      "family": "aspnet-antiforgery",
+      "categories": [
+        "aspnet",
+        "antiforgery"
+      ],
+      "topology": "SUT+Load"
+    },
+    {
+      "id": "aspnet-tls",
+      "matchAny": [
+        {
+          "source": "scenario",
+          "regex": "^(?:HttpSysTLSHandshakes|HttpSysMutualTLSHandshakes|HttpSysTLSRenegotiation|KestrelTLSHandshakes|NginxTLSHandshakes|KestrelMutualTLSHandshakes|KestrelTLSRenegotiation)$"
+        },
+        {
+          "source": "property",
+          "key": "scenario",
+          "regex": "^(?:HttpSysTLSHandshakes|HttpSysMutualTLSHandshakes|HttpSysTLSRenegotiation|KestrelTLSHandshakes|NginxTLSHandshakes|KestrelMutualTLSHandshakes|KestrelTLSRenegotiation)$"
+        }
+      ],
+      "descriptionMatches": [
+        {
+          "description": "HttpSys Windows: TLS Handshakes",
+          "testName": "HttpSysTLSHandshakes"
+        },
+        {
+          "description": "HttpSys Windows: mTLS Handshakes",
+          "testName": "HttpSysMutualTLSHandshakes"
+        },
+        {
+          "description": "HttpSys Windows: TLS Renegotiation",
+          "testName": "HttpSysTLSRenegotiation"
+        },
+        {
+          "description": "Kestrel Linux: TLS Handshakes",
+          "testName": "KestrelTLSHandshakes"
+        },
+        {
+          "description": "Nginx: TLS Handshakes",
+          "testName": "NginxTLSHandshakes"
+        },
+        {
+          "description": "Kestrel Linux: mTLS Handshakes",
+          "testName": "KestrelMutualTLSHandshakes"
+        },
+        {
+          "description": "Kestrel Linux: TLS Renegotiation",
+          "testName": "KestrelTLSRenegotiation"
+        }
+      ],
+      "testName": "$scenario",
+      "family": "aspnet-tls",
+      "categories": [
+        "aspnet",
+        "tls"
+      ],
+      "topology": "SUT+Load"
+    },
+    {
+      "id": "aspnet-request-rejection",
+      "matchAny": [
+        {
+          "source": "scenario",
+          "regex": "^(?:RejectionEncodedUrlHttpSys|RejectionInvalidHeaderHttpSys|RejectionHostHeaderMismatchHttpSys|RejectionEncodedUrlKestrel|RejectionInvalidHeaderKestrel|RejectionHostHeaderMismatchKestrel)$"
+        },
+        {
+          "source": "property",
+          "key": "scenario",
+          "regex": "^(?:RejectionEncodedUrlHttpSys|RejectionInvalidHeaderHttpSys|RejectionHostHeaderMismatchHttpSys|RejectionEncodedUrlKestrel|RejectionInvalidHeaderKestrel|RejectionHostHeaderMismatchKestrel)$"
+        }
+      ],
+      "descriptionMatches": [
+        {
+          "description": "HttpSys Windows: Encoded URL symbols",
+          "testName": "RejectionEncodedUrlHttpSys"
+        },
+        {
+          "description": "HttpSys Windows: Invalid Header",
+          "testName": "RejectionInvalidHeaderHttpSys"
+        },
+        {
+          "description": "HttpSys Windows: Host Header Mismatch",
+          "testName": "RejectionHostHeaderMismatchHttpSys"
+        },
+        {
+          "description": "Kestrel Linux: Encoded URL symbols",
+          "testName": "RejectionEncodedUrlKestrel"
+        },
+        {
+          "description": "Kestrel Linux: Invalid Header",
+          "testName": "RejectionInvalidHeaderKestrel"
+        },
+        {
+          "description": "Kestrel Linux: Host Header Mismatch",
+          "testName": "RejectionHostHeaderMismatchKestrel"
+        }
+      ],
+      "testName": "$scenario",
+      "family": "aspnet-request-rejection",
+      "categories": [
+        "aspnet",
+        "request-rejection"
+      ],
+      "topology": "SUT+Load"
+    },
+    {
+      "id": "aspnet-fortunes",
+      "matchAny": [
+        {
+          "source": "scenario",
+          "regex": "^(?:FortunesPlatform|FortunesPlatformEF|FortunesPlatformDapper|Fortunes|FortunesEf|FortunesDapper|FortunesMinimalApis|FortunesBlazorSsr|FortunesRazorPages)$"
+        },
+        {
+          "source": "property",
+          "key": "scenario",
+          "regex": "^(?:FortunesPlatform|FortunesPlatformEF|FortunesPlatformDapper|Fortunes|FortunesEf|FortunesDapper|FortunesMinimalApis|FortunesBlazorSsr|FortunesRazorPages)$"
+        }
+      ],
+      "descriptionMatches": [
+        {
+          "description": "Fortunes Platform",
+          "testName": "FortunesPlatform"
+        },
+        {
+          "description": "Fortunes Platform EF",
+          "testName": "FortunesPlatformEF"
+        },
+        {
+          "description": "Fortunes Platform Dapper",
+          "testName": "FortunesPlatformDapper"
+        },
+        {
+          "description": "Fortunes",
+          "testName": "Fortunes"
+        },
+        {
+          "description": "Fortunes EF",
+          "testName": "FortunesEf"
+        },
+        {
+          "description": "Fortunes Dapper",
+          "testName": "FortunesDapper"
+        },
+        {
+          "description": "Fortunes Minimal APIs",
+          "testName": "FortunesMinimalApis"
+        },
+        {
+          "description": "Fortunes Blazor SSR",
+          "testName": "FortunesBlazorSsr"
+        },
+        {
+          "description": "Fortunes Razor Pages",
+          "testName": "FortunesRazorPages"
+        }
+      ],
+      "testName": "$scenario",
+      "family": "aspnet-fortunes",
+      "categories": [
+        "aspnet",
+        "database",
+        "fortunes"
+      ],
+      "topology": "SUT+Load+DB"
+    },
+    {
+      "id": "aspnet-single-query",
+      "matchAny": [
+        {
+          "source": "scenario",
+          "regex": "^(?:SingleQueryPlatform|SingleQueryMinimalApis)$"
+        },
+        {
+          "source": "property",
+          "key": "scenario",
+          "regex": "^(?:SingleQueryPlatform|SingleQueryMinimalApis)$"
+        }
+      ],
+      "descriptionMatches": [
+        {
+          "description": "Single Query Platform",
+          "testName": "SingleQueryPlatform"
+        },
+        {
+          "description": "Single Query Minimal APIs",
+          "testName": "SingleQueryMinimalApis"
+        }
+      ],
+      "testName": "$scenario",
+      "family": "aspnet-single-query",
+      "categories": [
+        "aspnet",
+        "database",
+        "single-query"
+      ],
+      "topology": "SUT+Load+DB"
+    },
+    {
+      "id": "aspnet-multiple-queries",
+      "matchAny": [
+        {
+          "source": "scenario",
+          "regex": "^(?:MultipleQueriesPlatform|MultipleQueriesMinimalApis)$"
+        },
+        {
+          "source": "property",
+          "key": "scenario",
+          "regex": "^(?:MultipleQueriesPlatform|MultipleQueriesMinimalApis)$"
+        }
+      ],
+      "descriptionMatches": [
+        {
+          "description": "Multiple Queries Platform",
+          "testName": "MultipleQueriesPlatform"
+        },
+        {
+          "description": "Multiple Queries Minimal APIs",
+          "testName": "MultipleQueriesMinimalApis"
+        }
+      ],
+      "testName": "$scenario",
+      "family": "aspnet-multiple-queries",
+      "categories": [
+        "aspnet",
+        "database",
+        "multiple-queries"
+      ],
+      "topology": "SUT+Load+DB"
+    },
+    {
+      "id": "aspnet-updates",
+      "matchAny": [
+        {
+          "source": "scenario",
+          "regex": "^(?:UpdatesPlatform|UpdatesMinimalApis)$"
+        },
+        {
+          "source": "property",
+          "key": "scenario",
+          "regex": "^(?:UpdatesPlatform|UpdatesMinimalApis)$"
+        }
+      ],
+      "descriptionMatches": [
+        {
+          "description": "Updates Platform",
+          "testName": "UpdatesPlatform"
+        },
+        {
+          "description": "Updates Minimal APIs",
+          "testName": "UpdatesMinimalApis"
+        }
+      ],
+      "testName": "$scenario",
+      "family": "aspnet-updates",
+      "categories": [
+        "aspnet",
+        "database",
+        "updates"
+      ],
+      "topology": "SUT+Load+DB"
+    },
+    {
+      "id": "aspnet-caching",
+      "matchAny": [
+        {
+          "source": "scenario",
+          "equals": "CachingPlatform"
+        },
+        {
+          "source": "property",
+          "key": "scenario",
+          "equals": "CachingPlatform"
+        }
+      ],
+      "descriptionMatches": [
+        {
+          "description": "Caching Platform",
+          "testName": "CachingPlatform"
+        }
+      ],
+      "testName": "$scenario",
+      "family": "aspnet-caching",
+      "categories": [
+        "aspnet",
+        "database",
+        "caching"
+      ],
+      "topology": "SUT+Load+DB"
+    }
+  ]
+}
