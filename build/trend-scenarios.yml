@@ -388,6 +388,7 @@ steps:
               "--storage-account", "${{ parameters.perfLabStorageAccount }}",
               "--container", "${{ parameters.perfLabContainer }}",
               "--queue", "${{ parameters.perfLabResultsQueue }}",
+              "--storage-authentication", "certificate",
               "--tenant-id-environment-variable", "${{ parameters.perfLabTenantIdEnvironmentVariable }}",
               "--client-id-environment-variable", "${{ parameters.perfLabClientIdEnvironmentVariable }}",
               "--certificate-base64-environment-variable", "${{ parameters.perfLabCertificateBase64EnvironmentVariable }}",

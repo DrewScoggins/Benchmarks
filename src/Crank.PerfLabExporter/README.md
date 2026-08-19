@@ -155,6 +155,7 @@ dotnet run --project src\Crank.PerfLabExporter -- backfill `
   --storage-account pvscmdupload `
   --container results `
   --queue resultsqueue `
+  --storage-authentication managed-identity `
   --checkpoint artifacts\trend-backfill-live.checkpoint.json `
   --summary artifacts\trend-backfill-live.summary.json `
   --output-directory artifacts\trend-backfill
@@ -168,6 +169,11 @@ GitHub, Azure Storage, or queues.
 SQL authentication modes are `connection-string`, `default`,
 `managed-identity`, `certificate`, and `token`. Token mode reads only the
 environment variable named by `--sql-access-token-environment-variable`.
+`default` constructs `DefaultAzureCredential`; `managed-identity` constructs
+only `ManagedIdentityCredential` (system-assigned unless a client ID is
+specified); and `certificate` requires tenant ID, client ID, and exactly one
+certificate source. Credential options for other modes are rejected before
+any token request.
 Connection strings, access tokens, certificate passwords, and document JSON
 are never written to logs or summaries.
 
@@ -199,14 +205,18 @@ dotnet run --project src\Crank.PerfLabExporter -- upload `
   --queue resultsqueue
 ```
 
-Authentication uses `DefaultAzureCredential` and supports a user-assigned
-managed identity with `--managed-identity-client-id` or its environment
-variable form. Certificate workers can instead pass tenant/client IDs (or
-environment variable names for them) plus `--certificate-path` (or an
-environment variable containing that path), or name an environment variable
+Storage authentication modes are selected with `--storage-authentication`.
+The default mode uses `DefaultAzureCredential` and accepts no managed identity
+or certificate options. `managed-identity` uses only
+`ManagedIdentityCredential`; omit its client ID for the system-assigned
+identity or supply `--managed-identity-client-id` (or its environment-variable
+form) for a user-assigned identity. `certificate` requires tenant/client IDs
+(or environment-variable names for them) plus `--certificate-path` (or an
+environment variable containing that path), or an environment variable
 containing a base64 PFX with
 `--certificate-base64-environment-variable`. Certificate passwords are read
-only from the named environment variable.
+only from the named environment variable. Partial or cross-mode credential
+configurations are rejected rather than falling back to ambient credentials.
 
 File and blob names are deterministic from runtime, family, lane,
 configuration, scenario, and SQL session identity. Blob upload always
@@ -237,6 +247,7 @@ a successful Crank run and before cleanup, Trend sends this generic payload:
       "--storage-account", "pvscmdupload",
       "--container", "results",
       "--queue", "resultsqueue",
+      "--storage-authentication", "certificate",
       "--tenant-id-environment-variable", "PERFLAB_UPLOAD_TENANT_ID",
       "--client-id-environment-variable", "PERFLAB_UPLOAD_CLIENT_ID",
       "--certificate-base64-environment-variable", "PERFLAB_UPLOAD_CERTIFICATE_BASE64",

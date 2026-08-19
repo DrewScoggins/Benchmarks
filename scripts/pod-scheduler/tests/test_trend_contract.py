@@ -254,6 +254,10 @@ class TestTrendTemplateContract(unittest.TestCase):
                 text = _read(template)
                 post_process = text[text.index('"postProcess"'):]
                 self.assertIn(
+                    '"--storage-authentication", "certificate"',
+                    post_process,
+                )
+                self.assertIn(
                     "--tenant-id-environment-variable", post_process
                 )
                 self.assertIn(

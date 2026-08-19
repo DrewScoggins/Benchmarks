@@ -25,6 +25,8 @@ namespace Crank.PerfLabExporter.Backfill
             _credential = credential;
         }
 
+        internal TokenCredential Credential => _credential;
+
         public async ValueTask<string> GetTokenAsync(CancellationToken cancellationToken)
         {
             var token = await _credential.GetTokenAsync(RequestContext, cancellationToken);
@@ -59,17 +61,37 @@ namespace Crank.PerfLabExporter.Backfill
     {
         public static ISqlAccessTokenProvider? Create(SqlAuthenticationOptions options)
         {
+            return Create(options, AzureCredentialFactory.Create);
+        }
+
+        internal static ISqlAccessTokenProvider? Create(
+            SqlAuthenticationOptions options,
+            Func<
+                StorageAuthenticationMode,
+                StorageAuthenticationOptions,
+                TokenCredential> credentialFactory)
+        {
             return options.Mode switch
             {
                 SqlAuthenticationMode.ConnectionString => null,
                 SqlAuthenticationMode.AccessToken =>
                     new EnvironmentSqlAccessTokenProvider(
                         options.AccessTokenEnvironmentVariable!),
-                SqlAuthenticationMode.DefaultAzureCredential or
-                SqlAuthenticationMode.ManagedIdentity or
+                SqlAuthenticationMode.DefaultAzureCredential =>
+                    new TokenCredentialSqlAccessTokenProvider(
+                        credentialFactory(
+                            StorageAuthenticationMode.Default,
+                            options.AzureCredential)),
+                SqlAuthenticationMode.ManagedIdentity =>
+                    new TokenCredentialSqlAccessTokenProvider(
+                        credentialFactory(
+                            StorageAuthenticationMode.ManagedIdentity,
+                            options.AzureCredential)),
                 SqlAuthenticationMode.Certificate =>
                     new TokenCredentialSqlAccessTokenProvider(
-                        AzureCredentialFactory.Create(options.AzureCredential)),
+                        credentialFactory(
+                            StorageAuthenticationMode.Certificate,
+                            options.AzureCredential)),
                 _ => throw new ArgumentOutOfRangeException(
                     nameof(options),
                     options.Mode,

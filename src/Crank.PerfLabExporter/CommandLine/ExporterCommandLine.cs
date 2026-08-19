@@ -64,6 +64,8 @@ namespace Crank.PerfLabExporter.CommandLine
               --queue <name>                   PerfLab ingestion queue (normally resultsqueue).
 
             Upload authentication options:
+              --storage-authentication <mode>                       default (default), managed-identity,
+                                                                    or certificate.
               --managed-identity-client-id <id>                 User-assigned managed identity client ID.
               --managed-identity-client-id-environment-variable <name>
                                                                 Environment variable containing it.
@@ -127,7 +129,8 @@ namespace Crank.PerfLabExporter.CommandLine
               --sql-maximum-attempts <count>                   SQL attempts (default: 3).
               --sql-retry-delay-seconds <seconds>              SQL retry delay (default: 2).
 
-            Authentication uses DefaultAzureCredential unless certificate inputs are supplied.
+            Default storage authentication uses DefaultAzureCredential. Managed identity and certificate
+            modes use only their explicitly selected credential type.
             Credential secrets and GitHub tokens are read from environment variables and are never logged.
             Backfill defaults to dry-run. Storage options alone never enable publication.
             Blob uploads overwrite the deterministic name; rerunning the same export is idempotent.
@@ -188,27 +191,7 @@ namespace Crank.PerfLabExporter.CommandLine
                 storageAccount = TakeRequired(values, "--storage-account");
                 container = TakeRequired(values, "--container");
                 queue = TakeRequired(values, "--queue");
-                authentication = new StorageAuthenticationOptions
-                {
-                    ManagedIdentityClientId = TakeOptional(values, "--managed-identity-client-id"),
-                    ManagedIdentityClientIdEnvironmentVariable =
-                        TakeOptional(values, "--managed-identity-client-id-environment-variable"),
-                    TenantId = TakeOptional(values, "--tenant-id"),
-                    TenantIdEnvironmentVariable =
-                        TakeOptional(values, "--tenant-id-environment-variable"),
-                    ClientId = TakeOptional(values, "--client-id"),
-                    ClientIdEnvironmentVariable =
-                        TakeOptional(values, "--client-id-environment-variable"),
-                    CertificatePath = TakeOptional(values, "--certificate-path"),
-                    CertificatePathEnvironmentVariable =
-                        TakeOptional(
-                            values,
-                            "--certificate-path-environment-variable"),
-                    CertificateBase64EnvironmentVariable =
-                        TakeOptional(values, "--certificate-base64-environment-variable"),
-                    CertificatePasswordEnvironmentVariable =
-                        TakeOptional(values, "--certificate-password-environment-variable")
-                };
+                authentication = ParseStorageAuthentication(values);
                 var maximumAttempts = ParsePositiveInteger(
                     TakeOptional(values, "--maximum-attempts"),
                     PublicationRetryOptions.Default.MaximumAttempts,
@@ -220,39 +203,6 @@ namespace Crank.PerfLabExporter.CommandLine
                 retry = new PublicationRetryOptions(
                     maximumAttempts,
                     TimeSpan.FromSeconds(retryDelaySeconds));
-
-                if (!string.IsNullOrWhiteSpace(authentication.CertificatePath) &&
-                    !string.IsNullOrWhiteSpace(
-                        authentication.CertificatePathEnvironmentVariable))
-                {
-                    throw new ArgumentException(
-                        "Use either --certificate-path or --certificate-path-environment-variable, not both.");
-                }
-
-                if ((!string.IsNullOrWhiteSpace(authentication.CertificatePath) ||
-                     !string.IsNullOrWhiteSpace(
-                         authentication.CertificatePathEnvironmentVariable)) &&
-                    !string.IsNullOrWhiteSpace(authentication.CertificateBase64EnvironmentVariable))
-                {
-                    throw new ArgumentException(
-                        "Use either a certificate path or --certificate-base64-environment-variable, not both.");
-                }
-
-                ValidateDirectOrEnvironment(
-                    authentication.ManagedIdentityClientId,
-                    authentication.ManagedIdentityClientIdEnvironmentVariable,
-                    "--managed-identity-client-id",
-                    "--managed-identity-client-id-environment-variable");
-                ValidateDirectOrEnvironment(
-                    authentication.TenantId,
-                    authentication.TenantIdEnvironmentVariable,
-                    "--tenant-id",
-                    "--tenant-id-environment-variable");
-                ValidateDirectOrEnvironment(
-                    authentication.ClientId,
-                    authentication.ClientIdEnvironmentVariable,
-                    "--client-id",
-                    "--client-id-environment-variable");
             }
 
             if (values.Count > 0)
@@ -354,8 +304,18 @@ namespace Crank.PerfLabExporter.CommandLine
                 TakeOptional(values, "--github-token-environment-variable") ??
                 "GITHUB_TOKEN";
 
+            var sqlAuthenticationMode = ParseSqlAuthenticationMode(
+                TakeOptional(values, "--sql-authentication"));
             var sqlAzureCredential = new StorageAuthenticationOptions
             {
+                Mode = sqlAuthenticationMode switch
+                {
+                    SqlAuthenticationMode.ManagedIdentity =>
+                        StorageAuthenticationMode.ManagedIdentity,
+                    SqlAuthenticationMode.Certificate =>
+                        StorageAuthenticationMode.Certificate,
+                    _ => StorageAuthenticationMode.Default
+                },
                 ManagedIdentityClientId =
                     TakeOptional(values, "--sql-managed-identity-client-id"),
                 ManagedIdentityClientIdEnvironmentVariable =
@@ -391,8 +351,6 @@ namespace Crank.PerfLabExporter.CommandLine
                 TakeOptional(
                     values,
                     "--sql-access-token-environment-variable");
-            var sqlAuthenticationMode = ParseSqlAuthenticationMode(
-                TakeOptional(values, "--sql-authentication"));
             ValidateSqlAuthentication(
                 sqlAuthenticationMode,
                 sqlAzureCredential,
@@ -422,35 +380,7 @@ namespace Crank.PerfLabExporter.CommandLine
                 queue = TakeRequired(values, "--queue");
             }
 
-            var authentication = new StorageAuthenticationOptions
-            {
-                ManagedIdentityClientId =
-                    TakeOptional(values, "--managed-identity-client-id"),
-                ManagedIdentityClientIdEnvironmentVariable =
-                    TakeOptional(
-                        values,
-                        "--managed-identity-client-id-environment-variable"),
-                TenantId = TakeOptional(values, "--tenant-id"),
-                TenantIdEnvironmentVariable =
-                    TakeOptional(values, "--tenant-id-environment-variable"),
-                ClientId = TakeOptional(values, "--client-id"),
-                ClientIdEnvironmentVariable =
-                    TakeOptional(values, "--client-id-environment-variable"),
-                CertificatePath = TakeOptional(values, "--certificate-path"),
-                CertificatePathEnvironmentVariable =
-                    TakeOptional(
-                        values,
-                        "--certificate-path-environment-variable"),
-                CertificateBase64EnvironmentVariable =
-                    TakeOptional(
-                        values,
-                        "--certificate-base64-environment-variable"),
-                CertificatePasswordEnvironmentVariable =
-                    TakeOptional(
-                        values,
-                        "--certificate-password-environment-variable")
-            };
-            ValidateAzureCredentialOptions(authentication, prefix: string.Empty);
+            var authentication = ParseStorageAuthentication(values);
             var maximumAttempts = ParsePositiveInteger(
                 TakeOptional(values, "--maximum-attempts"),
                 PublicationRetryOptions.Default.MaximumAttempts,
@@ -674,39 +604,173 @@ namespace Crank.PerfLabExporter.CommandLine
             };
         }
 
+        private static StorageAuthenticationOptions ParseStorageAuthentication(
+            IDictionary<string, string?> values)
+        {
+            var options = new StorageAuthenticationOptions
+            {
+                Mode = ParseStorageAuthenticationMode(
+                    TakeOptional(values, "--storage-authentication")),
+                ManagedIdentityClientId =
+                    TakeOptional(values, "--managed-identity-client-id"),
+                ManagedIdentityClientIdEnvironmentVariable =
+                    TakeOptional(
+                        values,
+                        "--managed-identity-client-id-environment-variable"),
+                TenantId = TakeOptional(values, "--tenant-id"),
+                TenantIdEnvironmentVariable =
+                    TakeOptional(values, "--tenant-id-environment-variable"),
+                ClientId = TakeOptional(values, "--client-id"),
+                ClientIdEnvironmentVariable =
+                    TakeOptional(values, "--client-id-environment-variable"),
+                CertificatePath = TakeOptional(values, "--certificate-path"),
+                CertificatePathEnvironmentVariable =
+                    TakeOptional(
+                        values,
+                        "--certificate-path-environment-variable"),
+                CertificateBase64EnvironmentVariable =
+                    TakeOptional(
+                        values,
+                        "--certificate-base64-environment-variable"),
+                CertificatePasswordEnvironmentVariable =
+                    TakeOptional(
+                        values,
+                        "--certificate-password-environment-variable")
+            };
+            ValidateStorageAuthentication(options);
+            return options;
+        }
+
+        private static StorageAuthenticationMode ParseStorageAuthenticationMode(
+            string? value)
+        {
+            return value?.Trim().ToLowerInvariant() switch
+            {
+                null or "default" => StorageAuthenticationMode.Default,
+                "managed-identity" =>
+                    StorageAuthenticationMode.ManagedIdentity,
+                "certificate" => StorageAuthenticationMode.Certificate,
+                _ => throw new ArgumentException(
+                    $"Unknown storage authentication mode '{value}'. Expected default, managed-identity, or certificate.")
+            };
+        }
+
+        private static void ValidateStorageAuthentication(
+            StorageAuthenticationOptions options)
+        {
+            ValidateAzureCredentialOptions(options, "--");
+            var hasManagedIdentity =
+                HasValue(options.ManagedIdentityClientId) ||
+                HasValue(options.ManagedIdentityClientIdEnvironmentVariable);
+            var hasTenant =
+                HasValue(options.TenantId) ||
+                HasValue(options.TenantIdEnvironmentVariable);
+            var hasClient =
+                HasValue(options.ClientId) ||
+                HasValue(options.ClientIdEnvironmentVariable);
+            var hasCertificateMaterial =
+                HasValue(options.CertificatePath) ||
+                HasValue(options.CertificatePathEnvironmentVariable) ||
+                HasValue(options.CertificateBase64EnvironmentVariable);
+            var hasCertificateOptions =
+                hasTenant ||
+                hasClient ||
+                hasCertificateMaterial ||
+                HasValue(options.CertificatePasswordEnvironmentVariable);
+
+            switch (options.Mode)
+            {
+                case StorageAuthenticationMode.Default:
+                    if (hasManagedIdentity || hasCertificateOptions)
+                    {
+                        throw new ArgumentException(
+                            "Storage default authentication does not accept managed identity or certificate options. Use --storage-authentication managed-identity or certificate.");
+                    }
+
+                    break;
+                case StorageAuthenticationMode.ManagedIdentity:
+                    if (hasCertificateOptions)
+                    {
+                        throw new ArgumentException(
+                            "Storage managed-identity authentication accepts only --managed-identity-client-id or --managed-identity-client-id-environment-variable.");
+                    }
+
+                    break;
+                case StorageAuthenticationMode.Certificate:
+                    if (hasManagedIdentity)
+                    {
+                        throw new ArgumentException(
+                            "Storage certificate authentication cannot be combined with managed identity options.");
+                    }
+
+                    var missing = new List<string>();
+                    if (!hasTenant)
+                    {
+                        missing.Add(
+                            "--tenant-id or --tenant-id-environment-variable");
+                    }
+
+                    if (!hasClient)
+                    {
+                        missing.Add(
+                            "--client-id or --client-id-environment-variable");
+                    }
+
+                    if (!hasCertificateMaterial)
+                    {
+                        missing.Add(
+                            "--certificate-path, --certificate-path-environment-variable, or --certificate-base64-environment-variable");
+                    }
+
+                    if (missing.Count > 0)
+                    {
+                        throw new ArgumentException(
+                            $"Storage certificate authentication requires {string.Join(", ", missing)}.");
+                    }
+
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(
+                        nameof(options),
+                        options.Mode,
+                        "Unknown storage authentication mode.");
+            }
+        }
+
         private static void ValidateSqlAuthentication(
             SqlAuthenticationMode mode,
             StorageAuthenticationOptions azure,
             string? accessTokenEnvironmentVariable)
         {
             ValidateAzureCredentialOptions(azure, "--sql-");
+            var hasManagedIdentity =
+                HasValue(azure.ManagedIdentityClientId) ||
+                HasValue(azure.ManagedIdentityClientIdEnvironmentVariable);
+            var hasTenant =
+                HasValue(azure.TenantId) ||
+                HasValue(azure.TenantIdEnvironmentVariable);
+            var hasClient =
+                HasValue(azure.ClientId) ||
+                HasValue(azure.ClientIdEnvironmentVariable);
+            var hasCertificateMaterial =
+                HasValue(azure.CertificatePath) ||
+                HasValue(azure.CertificatePathEnvironmentVariable) ||
+                HasValue(azure.CertificateBase64EnvironmentVariable);
+            var hasCertificateOptions =
+                hasTenant ||
+                hasClient ||
+                hasCertificateMaterial ||
+                HasValue(azure.CertificatePasswordEnvironmentVariable);
             var hasAzureOptions =
-                !string.IsNullOrWhiteSpace(azure.ManagedIdentityClientId) ||
-                !string.IsNullOrWhiteSpace(
-                    azure.ManagedIdentityClientIdEnvironmentVariable) ||
-                !string.IsNullOrWhiteSpace(azure.TenantId) ||
-                !string.IsNullOrWhiteSpace(azure.TenantIdEnvironmentVariable) ||
-                !string.IsNullOrWhiteSpace(azure.ClientId) ||
-                !string.IsNullOrWhiteSpace(azure.ClientIdEnvironmentVariable) ||
-                !string.IsNullOrWhiteSpace(azure.CertificatePath) ||
-                !string.IsNullOrWhiteSpace(
-                    azure.CertificatePathEnvironmentVariable) ||
-                !string.IsNullOrWhiteSpace(
-                    azure.CertificateBase64EnvironmentVariable) ||
-                !string.IsNullOrWhiteSpace(
-                    azure.CertificatePasswordEnvironmentVariable);
-            var hasCertificate =
-                !string.IsNullOrWhiteSpace(azure.CertificatePath) ||
-                !string.IsNullOrWhiteSpace(
-                    azure.CertificatePathEnvironmentVariable) ||
-                !string.IsNullOrWhiteSpace(
-                    azure.CertificateBase64EnvironmentVariable);
+                hasManagedIdentity ||
+                hasCertificateOptions;
+            var hasAccessToken =
+                HasValue(accessTokenEnvironmentVariable);
 
             switch (mode)
             {
                 case SqlAuthenticationMode.ConnectionString:
-                    if (hasAzureOptions ||
-                        !string.IsNullOrWhiteSpace(accessTokenEnvironmentVariable))
+                    if (hasAzureOptions || hasAccessToken)
                     {
                         throw new ArgumentException(
                             "SQL connection-string authentication cannot be combined with SQL Azure credential or token options.");
@@ -714,7 +778,7 @@ namespace Crank.PerfLabExporter.CommandLine
 
                     break;
                 case SqlAuthenticationMode.AccessToken:
-                    if (string.IsNullOrWhiteSpace(accessTokenEnvironmentVariable))
+                    if (!hasAccessToken)
                     {
                         throw new ArgumentException(
                             "SQL token authentication requires --sql-access-token-environment-variable.");
@@ -728,50 +792,69 @@ namespace Crank.PerfLabExporter.CommandLine
 
                     break;
                 case SqlAuthenticationMode.Certificate:
-                    if (!hasCertificate)
+                    if (hasManagedIdentity)
                     {
                         throw new ArgumentException(
-                            "SQL certificate authentication requires --sql-certificate-path or --sql-certificate-base64-environment-variable.");
+                            "SQL certificate authentication cannot be combined with SQL managed identity options.");
                     }
 
-                    if ((string.IsNullOrWhiteSpace(azure.TenantId) &&
-                         string.IsNullOrWhiteSpace(
-                             azure.TenantIdEnvironmentVariable)) ||
-                        (string.IsNullOrWhiteSpace(azure.ClientId) &&
-                         string.IsNullOrWhiteSpace(
-                             azure.ClientIdEnvironmentVariable)))
-                    {
-                        throw new ArgumentException(
-                            "SQL certificate authentication requires tenant and client IDs, directly or by environment-variable name.");
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(accessTokenEnvironmentVariable))
+                    if (hasAccessToken)
                     {
                         throw new ArgumentException(
                             "SQL certificate authentication cannot be combined with a SQL access token.");
                     }
 
-                    break;
-                case SqlAuthenticationMode.DefaultAzureCredential:
-                case SqlAuthenticationMode.ManagedIdentity:
-                    if (hasCertificate ||
-                        !string.IsNullOrWhiteSpace(azure.TenantId) ||
-                        !string.IsNullOrWhiteSpace(
-                            azure.TenantIdEnvironmentVariable) ||
-                        !string.IsNullOrWhiteSpace(azure.ClientId) ||
-                        !string.IsNullOrWhiteSpace(
-                            azure.ClientIdEnvironmentVariable) ||
-                        !string.IsNullOrWhiteSpace(
-                            azure.CertificatePasswordEnvironmentVariable))
+                    var missing = new List<string>();
+                    if (!hasTenant)
                     {
-                        throw new ArgumentException(
-                            "SQL default/managed-identity authentication accepts only managed identity client-ID options.");
+                        missing.Add(
+                            "--sql-tenant-id or --sql-tenant-id-environment-variable");
                     }
 
-                    if (!string.IsNullOrWhiteSpace(accessTokenEnvironmentVariable))
+                    if (!hasClient)
+                    {
+                        missing.Add(
+                            "--sql-client-id or --sql-client-id-environment-variable");
+                    }
+
+                    if (!hasCertificateMaterial)
+                    {
+                        missing.Add(
+                            "--sql-certificate-path, --sql-certificate-path-environment-variable, or --sql-certificate-base64-environment-variable");
+                    }
+
+                    if (missing.Count > 0)
                     {
                         throw new ArgumentException(
-                            "SQL default/managed-identity authentication cannot be combined with a SQL access token.");
+                            $"SQL certificate authentication requires {string.Join(", ", missing)}.");
+                    }
+
+                    break;
+                case SqlAuthenticationMode.DefaultAzureCredential:
+                    if (hasAzureOptions)
+                    {
+                        throw new ArgumentException(
+                            "SQL default authentication does not accept managed identity or certificate options. Use --sql-authentication managed-identity or certificate.");
+                    }
+
+                    if (hasAccessToken)
+                    {
+                        throw new ArgumentException(
+                            "SQL default authentication cannot be combined with a SQL access token.");
+                    }
+
+                    break;
+                case SqlAuthenticationMode.ManagedIdentity:
+                    if (hasCertificateOptions)
+                    {
+                        throw new ArgumentException(
+                            "SQL managed-identity authentication accepts only --sql-managed-identity-client-id or --sql-managed-identity-client-id-environment-variable.");
+                    }
+
+                    if (hasAccessToken)
+                    {
+                        throw new ArgumentException(
+                            "SQL managed-identity authentication cannot be combined with a SQL access token.");
                     }
 
                     break;
@@ -787,19 +870,16 @@ namespace Crank.PerfLabExporter.CommandLine
             StorageAuthenticationOptions options,
             string prefix)
         {
-            if (!string.IsNullOrWhiteSpace(options.CertificatePath) &&
-                !string.IsNullOrWhiteSpace(
-                    options.CertificatePathEnvironmentVariable))
+            if (HasValue(options.CertificatePath) &&
+                HasValue(options.CertificatePathEnvironmentVariable))
             {
                 throw new ArgumentException(
                     $"Use either {prefix}certificate-path or {prefix}certificate-path-environment-variable, not both.");
             }
 
-            if ((!string.IsNullOrWhiteSpace(options.CertificatePath) ||
-                 !string.IsNullOrWhiteSpace(
-                     options.CertificatePathEnvironmentVariable)) &&
-                !string.IsNullOrWhiteSpace(
-                    options.CertificateBase64EnvironmentVariable))
+            if ((HasValue(options.CertificatePath) ||
+                 HasValue(options.CertificatePathEnvironmentVariable)) &&
+                HasValue(options.CertificateBase64EnvironmentVariable))
             {
                 throw new ArgumentException(
                     $"Use either a {prefix}certificate path or {prefix}certificate-base64-environment-variable, not both.");
@@ -825,6 +905,11 @@ namespace Crank.PerfLabExporter.CommandLine
                 options.CertificatePathEnvironmentVariable,
                 $"{prefix}certificate-path",
                 $"{prefix}certificate-path-environment-variable");
+        }
+
+        private static bool HasValue(string? value)
+        {
+            return !string.IsNullOrWhiteSpace(value);
         }
 
         private static void ValidateExactlyOne(

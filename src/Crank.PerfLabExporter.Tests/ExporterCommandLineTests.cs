@@ -4,6 +4,7 @@
 
 using Crank.PerfLabExporter.Backfill;
 using Crank.PerfLabExporter.CommandLine;
+using Crank.PerfLabExporter.Publishing;
 
 namespace Crank.PerfLabExporter.Tests
 {
@@ -38,6 +39,7 @@ namespace Crank.PerfLabExporter.Tests
                 "--storage-account", "account",
                 "--container", "results",
                 "--queue", "resultsqueue",
+                "--storage-authentication", "certificate",
                 "--tenant-id-environment-variable", "TENANT_ID",
                 "--client-id-environment-variable", "CLIENT_ID",
                 "--certificate-base64-environment-variable", "CERTIFICATE",
@@ -49,6 +51,9 @@ namespace Crank.PerfLabExporter.Tests
             Assert.Equal(
                 "CRANK_VERSION",
                 options.LiveIdentity.CrankVersionEnvironmentVariable);
+            Assert.Equal(
+                StorageAuthenticationMode.Certificate,
+                options.Authentication.Mode);
             Assert.Equal(
                 "TENANT_ID",
                 options.Authentication.TenantIdEnvironmentVariable);
@@ -286,6 +291,439 @@ namespace Crank.PerfLabExporter.Tests
                     .ToArray());
             Assert.True(options.Backfill!.Publish);
             Assert.False(options.Backfill.DryRun);
+        }
+
+        [Fact]
+        public void StorageAuthenticationDefaultsToDefaultAzureCredential()
+        {
+            var options = ExporterCommandLine.Parse(UploadArguments());
+
+            Assert.Equal(
+                StorageAuthenticationMode.Default,
+                options.Authentication.Mode);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ParsesExplicitManagedIdentityStorageAuthentication(
+            bool includeClientId)
+        {
+            var arguments = UploadArguments()
+                .Concat(
+                [
+                    "--storage-authentication",
+                    "managed-identity"
+                ])
+                .ToList();
+            if (includeClientId)
+            {
+                arguments.Add("--managed-identity-client-id");
+                arguments.Add("user-assigned-client");
+            }
+
+            var options = ExporterCommandLine.Parse(arguments.ToArray());
+
+            Assert.Equal(
+                StorageAuthenticationMode.ManagedIdentity,
+                options.Authentication.Mode);
+            Assert.Equal(
+                includeClientId ? "user-assigned-client" : null,
+                options.Authentication.ManagedIdentityClientId);
+        }
+
+        [Fact]
+        public void RejectsUnknownStorageAuthenticationMode()
+        {
+            var exception = Assert.Throws<ArgumentException>(() =>
+                ExporterCommandLine.Parse(
+                    UploadArguments()
+                        .Concat(
+                        [
+                            "--storage-authentication",
+                            "ambient"
+                        ])
+                        .ToArray()));
+
+            Assert.Contains(
+                "Expected default, managed-identity, or certificate",
+                exception.Message,
+                StringComparison.Ordinal);
+        }
+
+        [Theory]
+        [InlineData(false, false, false, false)]
+        [InlineData(true, false, false, false)]
+        [InlineData(false, true, false, false)]
+        [InlineData(false, false, true, false)]
+        [InlineData(false, false, false, true)]
+        [InlineData(true, true, false, false)]
+        [InlineData(true, false, true, false)]
+        [InlineData(false, true, true, false)]
+        public void RejectsEveryPartialStorageCertificateConfiguration(
+            bool includeTenant,
+            bool includeClient,
+            bool includeCertificate,
+            bool includePassword)
+        {
+            const string Tenant = "tenant-sensitive-value";
+            const string Client = "client-sensitive-value";
+            const string Certificate = "certificate-sensitive-path.pfx";
+            var arguments = UploadArguments()
+                .Concat(
+                [
+                    "--storage-authentication",
+                    "certificate"
+                ])
+                .ToList();
+            AddCertificateOptions(
+                arguments,
+                prefix: string.Empty,
+                includeTenant,
+                includeClient,
+                includeCertificate,
+                includePassword,
+                Tenant,
+                Client,
+                Certificate);
+
+            var exception = Assert.Throws<ArgumentException>(() =>
+                ExporterCommandLine.Parse(arguments.ToArray()));
+
+            Assert.Contains(
+                "Storage certificate authentication requires",
+                exception.Message,
+                StringComparison.Ordinal);
+            Assert.DoesNotContain(Tenant, exception.Message, StringComparison.Ordinal);
+            Assert.DoesNotContain(Client, exception.Message, StringComparison.Ordinal);
+            Assert.DoesNotContain(
+                Certificate,
+                exception.Message,
+                StringComparison.Ordinal);
+        }
+
+        [Theory]
+        [InlineData(
+            "default",
+            "--managed-identity-client-id",
+            "managed-sensitive-value")]
+        [InlineData("default", "--tenant-id", "tenant-sensitive-value")]
+        [InlineData(
+            "managed-identity",
+            "--tenant-id",
+            "tenant-sensitive-value")]
+        [InlineData(
+            "certificate",
+            "--managed-identity-client-id",
+            "managed-sensitive-value")]
+        public void RejectsStorageOptionsForAnotherAuthenticationMode(
+            string mode,
+            string option,
+            string sensitiveValue)
+        {
+            var exception = Assert.Throws<ArgumentException>(() =>
+                ExporterCommandLine.Parse(
+                    UploadArguments()
+                        .Concat(
+                        [
+                            "--storage-authentication",
+                            mode,
+                            option,
+                            sensitiveValue
+                        ])
+                        .ToArray()));
+
+            Assert.DoesNotContain(
+                sensitiveValue,
+                exception.Message,
+                StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void DefaultStorageModeRejectsPartialCertificateTriplet()
+        {
+            var exception = Assert.Throws<ArgumentException>(() =>
+                ExporterCommandLine.Parse(
+                    UploadArguments()
+                        .Concat(
+                        [
+                            "--tenant-id",
+                            "tenant-sensitive-value",
+                            "--client-id",
+                            "client-sensitive-value",
+                            "--certificate-password-environment-variable",
+                            "CERTIFICATE_PASSWORD"
+                        ])
+                        .ToArray()));
+
+            Assert.Contains(
+                "Storage default authentication",
+                exception.Message,
+                StringComparison.Ordinal);
+            Assert.DoesNotContain(
+                "tenant-sensitive-value",
+                exception.Message,
+                StringComparison.Ordinal);
+            Assert.DoesNotContain(
+                "client-sensitive-value",
+                exception.Message,
+                StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void DryRunDoesNotReadStorageCertificateEnvironmentVariables()
+        {
+            var suffix = Guid.NewGuid().ToString("N");
+
+            var options = ExporterCommandLine.Parse(
+                BackfillArguments()
+                    .Concat(
+                    [
+                        "--storage-authentication",
+                        "certificate",
+                        "--tenant-id-environment-variable",
+                        $"MISSING_TENANT_{suffix}",
+                        "--client-id-environment-variable",
+                        $"MISSING_CLIENT_{suffix}",
+                        "--certificate-base64-environment-variable",
+                        $"MISSING_CERTIFICATE_{suffix}",
+                        "--certificate-password-environment-variable",
+                        $"MISSING_PASSWORD_{suffix}"
+                    ])
+                    .ToArray());
+
+            Assert.True(options.Backfill!.DryRun);
+            Assert.Equal(
+                StorageAuthenticationMode.Certificate,
+                options.Backfill.Authentication.Mode);
+        }
+
+        [Theory]
+        [InlineData(
+            "default",
+            "default",
+            StorageAuthenticationMode.Default)]
+        [InlineData(
+            "managed-identity",
+            "managed-identity",
+            StorageAuthenticationMode.ManagedIdentity)]
+        public void ParsesExplicitSqlAzureAuthenticationModes(
+            string value,
+            string expectedSqlModeValue,
+            StorageAuthenticationMode expectedStorageMode)
+        {
+            var expectedSqlMode = expectedSqlModeValue switch
+            {
+                "default" =>
+                    SqlAuthenticationMode.DefaultAzureCredential,
+                "managed-identity" =>
+                    SqlAuthenticationMode.ManagedIdentity,
+                _ => throw new ArgumentOutOfRangeException(
+                    nameof(expectedSqlModeValue),
+                    expectedSqlModeValue,
+                    null)
+            };
+            var options = ExporterCommandLine.Parse(
+                BackfillArguments()
+                    .Concat(
+                    [
+                        "--sql-authentication",
+                        value
+                    ])
+                    .ToArray());
+
+            Assert.Equal(
+                expectedSqlMode,
+                options.Backfill!.SqlAuthentication.Mode);
+            Assert.Equal(
+                expectedStorageMode,
+                options.Backfill.SqlAuthentication.AzureCredential.Mode);
+        }
+
+        [Theory]
+        [InlineData(false, false, false, false)]
+        [InlineData(true, false, false, false)]
+        [InlineData(false, true, false, false)]
+        [InlineData(false, false, true, false)]
+        [InlineData(false, false, false, true)]
+        [InlineData(true, true, false, false)]
+        [InlineData(true, false, true, false)]
+        [InlineData(false, true, true, false)]
+        public void RejectsEveryPartialSqlCertificateConfiguration(
+            bool includeTenant,
+            bool includeClient,
+            bool includeCertificate,
+            bool includePassword)
+        {
+            const string Tenant = "sql-tenant-sensitive-value";
+            const string Client = "sql-client-sensitive-value";
+            const string Certificate = "sql-certificate-sensitive-path.pfx";
+            var arguments = BackfillArguments()
+                .Concat(
+                [
+                    "--sql-authentication",
+                    "certificate"
+                ])
+                .ToList();
+            AddCertificateOptions(
+                arguments,
+                prefix: "sql-",
+                includeTenant,
+                includeClient,
+                includeCertificate,
+                includePassword,
+                Tenant,
+                Client,
+                Certificate);
+
+            var exception = Assert.Throws<ArgumentException>(() =>
+                ExporterCommandLine.Parse(arguments.ToArray()));
+
+            Assert.Contains(
+                "SQL certificate authentication requires",
+                exception.Message,
+                StringComparison.Ordinal);
+            Assert.DoesNotContain(Tenant, exception.Message, StringComparison.Ordinal);
+            Assert.DoesNotContain(Client, exception.Message, StringComparison.Ordinal);
+            Assert.DoesNotContain(
+                Certificate,
+                exception.Message,
+                StringComparison.Ordinal);
+        }
+
+        [Theory]
+        [InlineData(
+            "default",
+            "--sql-managed-identity-client-id",
+            "managed-sensitive-value")]
+        [InlineData(
+            "managed-identity",
+            "--sql-tenant-id",
+            "tenant-sensitive-value")]
+        [InlineData(
+            "certificate",
+            "--sql-managed-identity-client-id",
+            "managed-sensitive-value")]
+        public void RejectsSqlOptionsForAnotherAuthenticationMode(
+            string mode,
+            string option,
+            string sensitiveValue)
+        {
+            var exception = Assert.Throws<ArgumentException>(() =>
+                ExporterCommandLine.Parse(
+                    BackfillArguments()
+                        .Concat(
+                        [
+                            "--sql-authentication",
+                            mode,
+                            option,
+                            sensitiveValue
+                        ])
+                        .ToArray()));
+
+            Assert.DoesNotContain(
+                sensitiveValue,
+                exception.Message,
+                StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void DefaultSqlModeRejectsPartialCertificateTriplet()
+        {
+            var exception = Assert.Throws<ArgumentException>(() =>
+                ExporterCommandLine.Parse(
+                    BackfillArguments()
+                        .Concat(
+                        [
+                            "--sql-authentication",
+                            "default",
+                            "--sql-tenant-id",
+                            "tenant-sensitive-value",
+                            "--sql-client-id",
+                            "client-sensitive-value",
+                            "--sql-certificate-password-environment-variable",
+                            "SQL_CERTIFICATE_PASSWORD"
+                        ])
+                        .ToArray()));
+
+            Assert.Contains(
+                "SQL default authentication",
+                exception.Message,
+                StringComparison.Ordinal);
+            Assert.DoesNotContain(
+                "tenant-sensitive-value",
+                exception.Message,
+                StringComparison.Ordinal);
+            Assert.DoesNotContain(
+                "client-sensitive-value",
+                exception.Message,
+                StringComparison.Ordinal);
+        }
+
+        private static string[] UploadArguments()
+        {
+            return
+            [
+                "upload",
+                "--crank-json", "crank.json",
+                "--counter-policy", "policy.json",
+                "--identity-source", "crank",
+                "--storage-account", "account",
+                "--container", "results",
+                "--queue", "resultsqueue"
+            ];
+        }
+
+        private static string[] BackfillArguments()
+        {
+            return
+            [
+                "backfill",
+                "--sql-connection-string-environment-variable", "TREND_SQL",
+                "--benchmarks-commit", "benchmarks-hash",
+                "--crank-version", "crank-version",
+                "--azdo-project", "internal",
+                "--azdo-pipeline", "aspnet-benchmarks",
+                "--azdo-build-url-template",
+                "https://dev.azure.com/example/internal/_build/results?buildId={buildId}"
+            ];
+        }
+
+        private static void AddCertificateOptions(
+            ICollection<string> arguments,
+            string prefix,
+            bool includeTenant,
+            bool includeClient,
+            bool includeCertificate,
+            bool includePassword,
+            string tenant,
+            string client,
+            string certificate)
+        {
+            if (includeTenant)
+            {
+                arguments.Add($"--{prefix}tenant-id");
+                arguments.Add(tenant);
+            }
+
+            if (includeClient)
+            {
+                arguments.Add($"--{prefix}client-id");
+                arguments.Add(client);
+            }
+
+            if (includeCertificate)
+            {
+                arguments.Add($"--{prefix}certificate-path");
+                arguments.Add(certificate);
+            }
+
+            if (includePassword)
+            {
+                arguments.Add(
+                    $"--{prefix}certificate-password-environment-variable");
+                arguments.Add($"{prefix}CERTIFICATE_PASSWORD");
+            }
         }
     }
 }
