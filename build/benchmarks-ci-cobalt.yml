@@ -402,7 +402,7 @@ jobs:
       connection: ASPNET Benchmarks Service Bus
       serviceBusQueueName: cobalthosted
       serviceBusNamespace: aspnetbenchmarks
-      benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)"
+      benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/trend-configs"
       enablePerfLabPublication: false
       perfLabLaneName: aspnet-cobalt-hosted-linux-x64
       perfLabQueue: Ubuntu.2204.Amd64.AspNetCobaltHosted.Perf
@@ -412,7 +412,7 @@ jobs:
       perfLabCores: "56"
       perfLabHardware: AspNetCobaltHosted
       perfLabTopology: "SUT+Load"
-      arguments: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/ci.profile.yml --profile cobalt-hosted-lin-server-app --profile cobalt-hosted-lin-client-load "
+      arguments: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/trend-configs/build/ci.profile.yml --variable benchmarksCommit=$(Build.SourceVersion) --profile cobalt-hosted-lin-server-app --profile cobalt-hosted-lin-client-load "
 
 - job: Trends_cobalt_hosted_lin_azl3
   displayName: 13- Trends cobalt-hosted-lin-azl3
@@ -426,7 +426,7 @@ jobs:
       connection: ASPNET Benchmarks Service Bus
       serviceBusQueueName: cobalthosted_azurelinux3
       serviceBusNamespace: aspnetbenchmarks
-      benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)"
+      benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/trend-configs"
       enablePerfLabPublication: false
       perfLabLaneName: aspnet-cobalt-hosted-azurelinux3-x64
       perfLabQueue: AzureLinux.3.Amd64.AspNetCobaltHosted.Perf
@@ -436,7 +436,7 @@ jobs:
       perfLabCores: "56"
       perfLabHardware: AspNetCobaltHosted
       perfLabTopology: "SUT+Load"
-      arguments: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/ci.profile.yml --profile cobalt-hosted-lin-server-azure-linux3-app --profile cobalt-hosted-lin-client-azure-linux3-load "
+      arguments: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/trend-configs/build/ci.profile.yml --variable benchmarksCommit=$(Build.SourceVersion) --profile cobalt-hosted-lin-server-azure-linux3-app --profile cobalt-hosted-lin-client-azure-linux3-load "
 
 # GROUP 14
 
@@ -452,7 +452,7 @@ jobs:
       connection: ASPNET Benchmarks Service Bus
       serviceBusQueueName: cobalthosted
       serviceBusNamespace: aspnetbenchmarks
-      benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)"
+      benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/trend-configs"
       enablePerfLabPublication: false
       perfLabLaneName: aspnet-cobalt-hosted-linux-x64
       perfLabQueue: Ubuntu.2204.Amd64.AspNetCobaltHosted.Perf
@@ -462,7 +462,7 @@ jobs:
       perfLabCores: "28"
       perfLabHardware: AspNetCobaltHosted
       perfLabTopology: "SUT+Load"
-      arguments: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/ci.profile.yml --profile cobalt-hosted-lin-server-28-app --profile cobalt-hosted-lin-client-load "
+      arguments: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/trend-configs/build/ci.profile.yml --variable benchmarksCommit=$(Build.SourceVersion) --profile cobalt-hosted-lin-server-28-app --profile cobalt-hosted-lin-client-load "
 
 - job: Trends_cobalt_hosted_lin_azl3_28
   displayName: 14- Trends cobalt-hosted-lin-azl3-28
@@ -476,7 +476,7 @@ jobs:
       connection: ASPNET Benchmarks Service Bus
       serviceBusQueueName: cobalthosted_azurelinux3
       serviceBusNamespace: aspnetbenchmarks
-      benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)"
+      benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/trend-configs"
       enablePerfLabPublication: false
       perfLabLaneName: aspnet-cobalt-hosted-azurelinux3-x64
       perfLabQueue: AzureLinux.3.Amd64.AspNetCobaltHosted.Perf
@@ -486,7 +486,7 @@ jobs:
       perfLabCores: "28"
       perfLabHardware: AspNetCobaltHosted
       perfLabTopology: "SUT+Load"
-      arguments: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/ci.profile.yml --profile cobalt-hosted-lin-server-azure-linux3-28-app --profile cobalt-hosted-lin-client-azure-linux3-load "
+      arguments: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/trend-configs/build/ci.profile.yml --variable benchmarksCommit=$(Build.SourceVersion) --profile cobalt-hosted-lin-server-azure-linux3-28-app --profile cobalt-hosted-lin-client-azure-linux3-load "
 
 # GROUP 15
 
@@ -622,7 +622,7 @@ jobs:
       connection: ASPNET Benchmarks Service Bus
       serviceBusQueueName: cobalthosted
       serviceBusNamespace: aspnetbenchmarks
-      benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)"
+      benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/trend-configs"
       enablePerfLabPublication: false
       perfLabLaneName: aspnet-cobalt-hosted-linux-x64
       perfLabQueue: Ubuntu.2204.Amd64.AspNetCobaltHosted.Perf
@@ -632,7 +632,7 @@ jobs:
       perfLabCores: "56"
       perfLabHardware: AspNetCobaltHosted
       perfLabTopology: "SUT+Load+DB"
-      arguments: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/ci.profile.yml --profile cobalt-hosted-lin-server-app --profile cobalt-hosted-lin-client-load --profile cobalt-hosted-lin-db-db "
+      arguments: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/trend-configs/build/ci.profile.yml --variable benchmarksCommit=$(Build.SourceVersion) --profile cobalt-hosted-lin-server-app --profile cobalt-hosted-lin-client-load --profile cobalt-hosted-lin-db-db "
 
 - job: Trends_Database_cobalt_hosted_lin_azl3
   displayName: 19- Trends Database cobalt-hosted-lin-azl3
@@ -646,7 +646,7 @@ jobs:
       connection: ASPNET Benchmarks Service Bus
       serviceBusQueueName: cobalthosted_azurelinux3
       serviceBusNamespace: aspnetbenchmarks
-      benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)"
+      benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/trend-configs"
       enablePerfLabPublication: false
       perfLabLaneName: aspnet-cobalt-hosted-azurelinux3-x64
       perfLabQueue: AzureLinux.3.Amd64.AspNetCobaltHosted.Perf
@@ -656,7 +656,7 @@ jobs:
       perfLabCores: "56"
       perfLabHardware: AspNetCobaltHosted
       perfLabTopology: "SUT+Load+DB"
-      arguments: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/ci.profile.yml --profile cobalt-hosted-lin-server-azure-linux3-app --profile cobalt-hosted-lin-client-azure-linux3-load --profile cobalt-hosted-lin-db-azure-linux3-db "
+      arguments: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/trend-configs/build/ci.profile.yml --variable benchmarksCommit=$(Build.SourceVersion) --profile cobalt-hosted-lin-server-azure-linux3-app --profile cobalt-hosted-lin-client-azure-linux3-load --profile cobalt-hosted-lin-db-azure-linux3-db "
 
 # GROUP 20
 
@@ -672,7 +672,7 @@ jobs:
       connection: ASPNET Benchmarks Service Bus
       serviceBusQueueName: cobalthosted
       serviceBusNamespace: aspnetbenchmarks
-      benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)"
+      benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/trend-configs"
       enablePerfLabPublication: false
       perfLabLaneName: aspnet-cobalt-hosted-linux-x64
       perfLabQueue: Ubuntu.2204.Amd64.AspNetCobaltHosted.Perf
@@ -682,7 +682,7 @@ jobs:
       perfLabCores: "28"
       perfLabHardware: AspNetCobaltHosted
       perfLabTopology: "SUT+Load+DB"
-      arguments: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/ci.profile.yml --profile cobalt-hosted-lin-server-28-app --profile cobalt-hosted-lin-client-load --profile cobalt-hosted-lin-db-db "
+      arguments: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/trend-configs/build/ci.profile.yml --variable benchmarksCommit=$(Build.SourceVersion) --profile cobalt-hosted-lin-server-28-app --profile cobalt-hosted-lin-client-load --profile cobalt-hosted-lin-db-db "
 
 - job: Trends_Database_cobalt_hosted_lin_azl3_28
   displayName: 20- Trends Database cobalt-hosted-lin-azl3-28
@@ -696,7 +696,7 @@ jobs:
       connection: ASPNET Benchmarks Service Bus
       serviceBusQueueName: cobalthosted_azurelinux3
       serviceBusNamespace: aspnetbenchmarks
-      benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)"
+      benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/trend-configs"
       enablePerfLabPublication: false
       perfLabLaneName: aspnet-cobalt-hosted-azurelinux3-x64
       perfLabQueue: AzureLinux.3.Amd64.AspNetCobaltHosted.Perf
@@ -706,7 +706,7 @@ jobs:
       perfLabCores: "28"
       perfLabHardware: AspNetCobaltHosted
       perfLabTopology: "SUT+Load+DB"
-      arguments: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/ci.profile.yml --profile cobalt-hosted-lin-server-azure-linux3-28-app --profile cobalt-hosted-lin-client-azure-linux3-load --profile cobalt-hosted-lin-db-azure-linux3-db "
+      arguments: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/trend-configs/build/ci.profile.yml --variable benchmarksCommit=$(Build.SourceVersion) --profile cobalt-hosted-lin-server-azure-linux3-28-app --profile cobalt-hosted-lin-client-azure-linux3-load --profile cobalt-hosted-lin-db-azure-linux3-db "
 
 # GROUP 21
 

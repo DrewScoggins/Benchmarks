@@ -106,6 +106,15 @@ namespace Crank.PerfLabExporter.Conversion
             {
                 if (mappingLookup.TryGetValue(scalar.MappingPath, out var mapping))
                 {
+                    if (!IsApplicable(mapping, identity.Scenario.Family))
+                    {
+                        diagnostics.Add(
+                            $"Mapped numeric Crank result omitted for scenario " +
+                            $"family '{identity.Scenario.Family}': " +
+                            $"{scalar.SourcePath}");
+                        continue;
+                    }
+
                     var normalized = Normalize(scalar.Value, mapping, scalar.SourcePath);
                     counters.Add((
                         new PerfLabCounter
@@ -197,6 +206,30 @@ namespace Crank.PerfLabExporter.Conversion
 
             PerfLabReportValidator.ValidateAndThrow(report);
             return new CrankConversionResult(report, diagnostics);
+        }
+
+        private static bool IsApplicable(
+            CounterMapping mapping,
+            string scenarioFamily)
+        {
+            if (mapping.Applicability is null)
+            {
+                return true;
+            }
+
+            var included = mapping.Applicability.IncludeScenarioFamilies ?? [];
+            var excluded = mapping.Applicability.ExcludeScenarioFamilies ?? [];
+            if (included.Count > 0 &&
+                !included.Contains(
+                    scenarioFamily,
+                    StringComparer.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            return !excluded.Contains(
+                scenarioFamily,
+                StringComparer.OrdinalIgnoreCase);
         }
 
         private static void ValidateCrankProperties(

@@ -126,5 +126,68 @@ namespace Crank.PerfLabExporter.Tests
             Assert.Contains(errors, error => error.Path == "$.unmappedCounter");
             Assert.Contains(errors, error => error.Path == "$.unmappedCounter.higherIsBetter");
         }
+
+        [Fact]
+        public void RejectsEmptyOrOverlappingFamilyApplicability()
+        {
+            var policy = ContractTestData.CreateValidPolicy();
+            policy.Mappings[1].Applicability = new CounterApplicability();
+
+            var emptyErrors = CounterPolicyValidator.Validate(policy);
+
+            Assert.Contains(
+                emptyErrors,
+                error => error.Path == "$.mappings[1].applicability");
+
+            policy.Mappings[1].Applicability = new CounterApplicability
+            {
+                IncludeScenarioFamilies =
+                [
+                    "aspnet-plaintext",
+                    "aspnet-plaintext"
+                ],
+                ExcludeScenarioFamilies =
+                [
+                    "aspnet-plaintext",
+                    " "
+                ]
+            };
+
+            var overlapErrors = CounterPolicyValidator.Validate(policy);
+
+            Assert.Contains(
+                overlapErrors,
+                error => error.Path ==
+                    "$.mappings[1].applicability.includeScenarioFamilies");
+            Assert.Contains(
+                overlapErrors,
+                error => error.Path ==
+                    "$.mappings[1].applicability.excludeScenarioFamilies[1]");
+            Assert.Contains(
+                overlapErrors,
+                error => error.Path == "$.mappings[1].applicability" &&
+                    error.Message.Contains(
+                        "both included and excluded",
+                        StringComparison.Ordinal));
+        }
+
+        [Fact]
+        public void RequiresDefaultMappingToApplyToEveryFamily()
+        {
+            var policy = ContractTestData.CreateValidPolicy();
+            policy.Mappings[0].Applicability = new CounterApplicability
+            {
+                ExcludeScenarioFamilies = ["aspnet-request-rejection"]
+            };
+
+            var errors = CounterPolicyValidator.Validate(policy);
+
+            Assert.Contains(
+                errors,
+                error => error.Path == "$.mappings[0].applicability" &&
+                    error.Message.Contains(
+                        "default mapping",
+                        StringComparison.Ordinal));
+        }
     }
 }

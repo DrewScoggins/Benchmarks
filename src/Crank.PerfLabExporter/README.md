@@ -7,9 +7,11 @@ its existing SQL rows; this tool owns conversion and optional Azure publication.
 The default Trend counter policy is
 [`build/crank-perflab-counter-policy.json`](../../build/crank-perflab-counter-policy.json).
 It maps requests/sec, mean latency, P99 latency, startup time, and published
-size. Published size is normalized from Crank KB to bytes. Every other finite
-numeric result entry whose value is itself a scalar is retained with its fully
-qualified source path, `value` unit, unknown direction, and
+size. Published size is normalized from Crank KB to bytes. Mappings can include
+or exclude scenario families; the default policy omits incompatible mean and
+P99 latency values for `aspnet-request-rejection`. Requests/sec remains the
+default counter, and every other finite numeric scalar is retained with its
+fully qualified source path, `value` unit, unknown direction, and
 non-top/non-default roles. Object and array payloads (including raw
 distributions and histograms) are skipped with diagnostics and are never
 flattened into counters or samples. Top-level non-finite numeric
@@ -72,7 +74,10 @@ Live mode rejects missing required fields, conflicting dependency identity,
 and unexpanded `$(...)`/`${{ ... }}` pipeline expressions. It also requires a
 Crank version from `perflab.crankVersion`, a root `crankVersion` JSON field, an
 explicit `--crank-version`, or the environment variable named by
-`--crank-version-environment-variable`.
+`--crank-version-environment-variable`. Lane architecture and OS are checked
+against the Crank agent's `arch` and `os` environment fields (`hw` and `env`
+remain descriptive); legacy `architecture`/`processArchitecture` and
+`operatingSystem`/`osDescription` aliases remain accepted.
 
 Current Crank `--json` output contains one aggregate per result and averages
 multiple Crank iterations before writing the file. The exporter therefore emits

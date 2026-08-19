@@ -37,6 +37,9 @@ _PINNED_RAW_BASE_URL = (
     "https://raw.githubusercontent.com/aspnet/Benchmarks/"
     "$(Build.SourceVersion)"
 )
+_PINNED_CONFIG_BASE_URL = (
+    f"{_PINNED_RAW_BASE_URL}/build/trend-configs"
+)
 
 
 def _read(name):
@@ -323,7 +326,7 @@ class TestTrendTemplateContract(unittest.TestCase):
             parameters = call["parameters"]
             job_prefix = call["job_prefix"]
             self.assertEqual(
-                _PINNED_RAW_BASE_URL,
+                _PINNED_CONFIG_BASE_URL,
                 parameters["benchmarksRawBaseUrl"],
             )
             self.assertEqual(
@@ -331,7 +334,12 @@ class TestTrendTemplateContract(unittest.TestCase):
                 parameters["enablePerfLabPublication"],
             )
             self.assertIn(
-                f"--config {_PINNED_RAW_BASE_URL}/build/ci.profile.yml",
+                f"--config {_PINNED_CONFIG_BASE_URL}/"
+                "build/ci.profile.yml",
+                parameters["arguments"],
+            )
+            self.assertIn(
+                "--variable benchmarksCommit=$(Build.SourceVersion)",
                 parameters["arguments"],
             )
             self.assertIsNone(
@@ -445,6 +453,10 @@ class TestTrendTemplateContract(unittest.TestCase):
                     command,
                 )
                 self.assertIsNone(_BENCHMARKS_MACRO_RE.search(command))
+                self.assertIn(
+                    "--variable benchmarksCommit=$(Build.SourceVersion)",
+                    command,
+                )
                 benchmarks_urls = re.findall(
                     r"https://raw\.githubusercontent\.com/"
                     r"aspnet/Benchmarks/[^\s\"\\]+",
@@ -453,7 +465,7 @@ class TestTrendTemplateContract(unittest.TestCase):
                 self.assertGreaterEqual(len(benchmarks_urls), 4)
                 self.assertTrue(
                     all(
-                        url.startswith(_PINNED_RAW_BASE_URL + "/")
+                        url.startswith(_PINNED_CONFIG_BASE_URL + "/")
                         for url in benchmarks_urls
                     ),
                     command,

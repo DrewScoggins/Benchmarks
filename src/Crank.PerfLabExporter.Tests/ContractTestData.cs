@@ -92,7 +92,14 @@ namespace Crank.PerfLabExporter.Tests
                         HigherIsBetter = false,
                         TopCounter = true,
                         RegressionThreshold = 0.05,
-                        Normalization = new CounterNormalization { Scale = 0.001 }
+                        Normalization = new CounterNormalization { Scale = 0.001 },
+                        Applicability = new CounterApplicability
+                        {
+                            ExcludeScenarioFamilies =
+                            [
+                                "aspnet-request-rejection"
+                            ]
+                        }
                     }
                 ]
             };

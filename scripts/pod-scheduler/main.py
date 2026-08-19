@@ -27,6 +27,10 @@ from scheduler import (
     expand_runs,
     split_schedule,
 )
+from trend_config_bundle import (
+    TrendConfigBundleError,
+    generate_trend_config_bundle,
+)
 
 
 def print_summary(config: ScheduleConfig, schedule: Schedule) -> None:
@@ -216,6 +220,20 @@ def main(argv: List[str] = None) -> int:
 
         if args.yaml_output:
             print(f"Generating {len(schedules)} YAML file(s)...")
+            if any(
+                scenario.template in {
+                    "trend-scenarios.yml",
+                    "trend-database-scenarios.yml",
+                }
+                for scenario in config.scenarios
+            ):
+                repo_root = os.path.abspath(
+                    os.path.join(os.path.dirname(__file__), "..", "..")
+                )
+                generate_trend_config_bundle(
+                    repo_root,
+                    os.path.join(args.yaml_output, "trend-configs"),
+                )
             generate_yamls(
                 schedules, config, args.yaml_output,
                 base_name=args.base_name,
@@ -223,7 +241,12 @@ def main(argv: List[str] = None) -> int:
             )
             print("Done!")
         return 0
-    except (ConfigError, SchedulerError, GeneratorError) as exc:
+    except (
+        ConfigError,
+        SchedulerError,
+        GeneratorError,
+        TrendConfigBundleError,
+    ) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
 

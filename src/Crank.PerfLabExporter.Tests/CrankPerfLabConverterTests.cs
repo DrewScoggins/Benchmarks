@@ -78,6 +78,76 @@ namespace Crank.PerfLabExporter.Tests
         }
 
         [Fact]
+        public async Task RetainsLatencyMappingsForSupportedScenarioFamily()
+        {
+            var conversion = await ConvertFixtureAsync();
+            var test = Assert.Single(conversion.Report.Tests);
+
+            AssertCounter(test, "Mean latency", "ms", false, 1.25);
+            AssertCounter(test, "P99 latency", "ms", false, 3.5);
+        }
+
+        [Fact]
+        public async Task OmitsIncompatibleLatencyMappingsForRequestRejection()
+        {
+            var execution = FixtureLoader.LoadExecution();
+            execution.JobResults.Properties["scenario"] =
+                "RejectionInvalidHeaderKestrel";
+            var identity = FixtureLoader.LoadIdentity();
+            identity.Scenario.Name = "RejectionInvalidHeaderKestrel";
+            identity.Scenario.Family = "aspnet-request-rejection";
+            var converter = new CrankPerfLabConverter(
+                new StubCommitTimeResolver(
+                    DateTimeOffset.Parse("2000-01-01T00:00:00Z")));
+
+            var conversion = await converter.ConvertAsync(
+                execution,
+                FixtureLoader.LoadPolicy(),
+                identity,
+                CreateSource());
+
+            var test = Assert.Single(conversion.Report.Tests);
+            var defaultCounter = Assert.Single(
+                test.Counters,
+                counter => counter.DefaultCounter);
+            Assert.Equal("Requests/sec", defaultCounter.Name);
+            Assert.DoesNotContain(
+                test.Counters,
+                counter => counter.Name == "Mean latency");
+            Assert.DoesNotContain(
+                test.Counters,
+                counter => counter.Name == "P99 latency");
+            Assert.Contains(
+                test.Counters,
+                counter => counter.Name == "Startup time");
+            Assert.Contains(
+                test.Counters,
+                counter => counter.Name == "Published size");
+            Assert.Contains(
+                test.Counters,
+                counter => counter.Name ==
+                    "jobs.load.results['custom/scalar']");
+            Assert.Contains(
+                conversion.Diagnostics,
+                diagnostic =>
+                    diagnostic.Contains(
+                        "jobs.load.results['http/latency/mean']",
+                        StringComparison.Ordinal) &&
+                    diagnostic.Contains(
+                        "aspnet-request-rejection",
+                        StringComparison.Ordinal));
+            Assert.Contains(
+                conversion.Diagnostics,
+                diagnostic =>
+                    diagnostic.Contains(
+                        "jobs.load.results['http/latency/99']",
+                        StringComparison.Ordinal) &&
+                    diagnostic.Contains(
+                        "aspnet-request-rejection",
+                        StringComparison.Ordinal));
+        }
+
+        [Fact]
         public async Task ResolvesRuntimeByNormalizedIdentityAndRecordsDependencyMetadata()
         {
             var conversion = await ConvertFixtureAsync();

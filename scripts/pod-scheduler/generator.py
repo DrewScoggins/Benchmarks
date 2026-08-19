@@ -17,6 +17,7 @@ from models import (
     ScheduleConfig,
     sanitize_job_id,
 )
+from trend_config_bundle import bundle_repo_path
 
 
 _CRON_HOUR_RE = re.compile(r"^(\d+)(/\d+)?$")
@@ -220,7 +221,8 @@ def _render_yaml(
                         f"Trend job {job['name']!r} has no PerfLab lane mapping"
                     )
                 lines.append(
-                    f'      benchmarksRawBaseUrl: "{raw_base_url}"'
+                    "      benchmarksRawBaseUrl: "
+                    f'"{raw_base_url}/build/trend-configs"'
                 )
                 publication_enabled = str(
                     job.get("enable_perf_lab_publication", False)
@@ -243,11 +245,20 @@ def _render_yaml(
                 )
             ci_profile = (
                 "--config "
-                f"{pipeline.trend_benchmarks_raw_base_url}/build/ci.profile.yml"
+                f"{pipeline.trend_benchmarks_raw_base_url}/"
+                f"{bundle_repo_path('build/ci.profile.yml')}"
                 if job["template"] in _TREND_TEMPLATES
                 else "$(ciProfile)"
             )
-            lines.append(f'      arguments: "{ci_profile} {profiles_args} "')
+            pin_argument = (
+                "--variable benchmarksCommit=$(Build.SourceVersion) "
+                if job["template"] in _TREND_TEMPLATES
+                else ""
+            )
+            lines.append(
+                f'      arguments: "{ci_profile} '
+                f'{pin_argument}{profiles_args} "'
+            )
             lines.append("")
 
         prev_group_jobs = current_jobs

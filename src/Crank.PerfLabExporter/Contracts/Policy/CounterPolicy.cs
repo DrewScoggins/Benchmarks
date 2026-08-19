@@ -45,6 +45,10 @@ namespace Crank.PerfLabExporter.Contracts.Policy
         [JsonPropertyName("normalization")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public CounterNormalization? Normalization { get; set; }
+
+        [JsonPropertyName("applicability")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public CounterApplicability? Applicability { get; set; }
     }
 
     public sealed class CounterNormalization
@@ -54,6 +58,15 @@ namespace Crank.PerfLabExporter.Contracts.Policy
 
         [JsonPropertyName("offset")]
         public double Offset { get; set; }
+    }
+
+    public sealed class CounterApplicability
+    {
+        [JsonPropertyName("includeScenarioFamilies")]
+        public List<string> IncludeScenarioFamilies { get; set; } = [];
+
+        [JsonPropertyName("excludeScenarioFamilies")]
+        public List<string> ExcludeScenarioFamilies { get; set; } = [];
     }
 
     public sealed class UnmappedCounterPolicy

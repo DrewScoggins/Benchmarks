@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Text.Json;
 using Crank.PerfLabExporter.CommandLine;
 using Crank.PerfLabExporter.Conversion;
 
@@ -112,6 +113,65 @@ namespace Crank.PerfLabExporter.Tests
                 "contradicts application environment architecture",
                 exception.Message,
                 StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void AcceptsRealCrankAgentEnvironmentShapeWhenLaneMatches()
+        {
+            var execution = FixtureLoader.LoadExecution();
+            var environment =
+                execution.JobResults.Jobs["application"].Environment;
+
+            Assert.Equal("X64", environment["arch"].GetString());
+            Assert.Equal(0, environment["os"].GetInt32());
+            Assert.True(environment.ContainsKey("hw"));
+            Assert.True(environment.ContainsKey("env"));
+
+            var identity = LiveExportIdentityBuilder.Build(
+                execution,
+                new LiveIdentityOptions());
+
+            Assert.Equal("x64", identity.Lane.Os.Architecture);
+            Assert.Equal("Ubuntu 22.04", identity.Lane.Os.Name);
+        }
+
+        [Fact]
+        public void RejectsLaneOperatingSystemThatContradictsApplicationEnvironment()
+        {
+            var execution = FixtureLoader.LoadExecution();
+            execution.JobResults.Properties["perflab.lane.os.name"] =
+                "Windows Server 2022";
+
+            var exception = Assert.Throws<CrankConversionException>(() =>
+                LiveExportIdentityBuilder.Build(
+                    execution,
+                    new LiveIdentityOptions()));
+
+            Assert.Contains(
+                "contradicts application environment operating system",
+                exception.Message,
+                StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void PreservesLegacyEnvironmentArchitectureAndOperatingSystemAliases()
+        {
+            var execution = FixtureLoader.LoadExecution();
+            execution.JobResults.Jobs["application"].Environment =
+                new Dictionary<string, JsonElement>
+                {
+                    ["processArchitecture"] =
+                        JsonSerializer.SerializeToElement("AMD64"),
+                    ["operatingSystem"] =
+                        JsonSerializer.SerializeToElement("Linux")
+                };
+
+            var identity = LiveExportIdentityBuilder.Build(
+                execution,
+                new LiveIdentityOptions());
+
+            Assert.Equal("x64", identity.Lane.Os.Architecture);
+            Assert.Equal("Ubuntu 22.04", identity.Lane.Os.Name);
         }
     }
 }

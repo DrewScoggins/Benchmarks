@@ -1,0 +1,23 @@
+{
+  "results": [
+    {
+      "name": "benchmarks/working-set/steady",
+      "description": "Load Working Set - P90 (MB)",
+      "format": "n0"
+    },
+    {
+      "name": "benchmarks/cpu/steady",
+      "description": "Load CPU Usage - P90 (%)",
+      "format": "n0"
+    }
+  ],
+  "onResultsCreating": [
+    "\nfunction steadyState(measurement, reduce) {\n  // Calculates the result of the 'reduce' operation on the 'measurement' property of the application job.\n  // example: \n  //   const result = steadyState('benchmarks/working-set', percentile90);\n\n  let duration = benchmarks.jobs.load.variables.duration;\n  let measurements = benchmarks.jobs.application.measurements[0].filter(m => m.name == measurement);\n  \n  // Don't add any result if there are no measurements\n  if (measurements.length == 0) {\n    console.warn(`No measurements available for '${measurement}'.`);\n    return null;\n  }\n\n  let lastMeasurement = measurements[measurements.length-1];\n  let begin = new Date(lastMeasurement.timestamp) - duration * 1000;\n  let recent = measurements.filter(m => new Date(m.timestamp) >= begin);\n  let values = recent.map(m => m.value);\n  let result = reduce(values);\n  \n  return result;\n}\n"
+  ],
+  "onResultsCreated": [
+    "benchmarks.jobs.application.results[\"benchmarks/working-set/steady\"] = steadyState('benchmarks/working-set', percentile90);\nbenchmarks.jobs.application.results[\"benchmarks/cpu/steady\"] = steadyState('benchmarks/cpu', percentile90);\n"
+  ],
+  "variables": {
+    "benchmarksCommit": "main"
+  }
+}

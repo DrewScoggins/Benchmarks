@@ -1,0 +1,1008 @@
+{
+  "imports": [
+    "https://raw.githubusercontent.com/dotnet/crank/main/src/Microsoft.Crank.Jobs.Bombardier/bombardier.yml",
+    "https://raw.githubusercontent.com/dotnet/crank/main/src/Microsoft.Crank.Jobs.HttpClient/httpclient.yml",
+    "https://raw.githubusercontent.com/dotnet/crank/main/src/Microsoft.Crank.Jobs.Wrk/wrk.yml"
+  ],
+  "profiles": {
+    "latest-extensions-packages": {
+      "jobs": {
+        "application": {
+          "packageReferences": {
+            "Microsoft.Extensions.Caching.Abstractions": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Caching.Memory": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Configuration.Abstractions": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Configuration.Binder": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Configuration.CommandLine": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Configuration.EnvironmentVariables": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Configuration.FileExtensions": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Configuration.Ini": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Configuration.Json": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Configuration.UserSecrets": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Configuration.Xml": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Configuration": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.DependencyInjection.Abstractions": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.DependencyInjection": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.FileProviders.Abstractions": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.FileProviders.Composite": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.FileProviders.Physical": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.FileSystemGlobbing": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Hosting.Abstractions": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Hosting": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Http": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Logging.Abstractions": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Logging.Configuration": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Logging.Console": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Logging.Debug": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Logging.EventSource": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Logging.EventLog": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Logging.TraceSource": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Logging": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Options.ConfigurationExtensions": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Options.DataAnnotations": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Options": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Primitives": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.DependencyModel": "$(MicrosoftNETCoreAppPackageVersion)",
+            "System.IO.Pipelines": "$(MicrosoftNETCoreAppPackageVersion)"
+          }
+        }
+      }
+    },
+    "noload": {
+      "variables": {
+        "warmup": 0,
+        "duration": 0
+      }
+    },
+    "short": {
+      "variables": {
+        "warmup": 3,
+        "duration": 7
+      }
+    },
+    "pgo": {
+      "jobs": {
+        "application": {
+          "environmentVariables": [
+            {
+              "DOTNET_TieredPGO": 1
+            },
+            {
+              "DOTNET_TC_QuickJitForLoops": 1
+            },
+            {
+              "DOTNET_ReadyToRun": 0
+            }
+          ]
+        }
+      }
+    },
+    "local": {
+      "variables": {
+        "serverAddress": "localhost"
+      },
+      "jobs": {
+        "db": {
+          "endpoints": [
+            "{{localendpoint}}"
+          ],
+          "aliases": [
+            "downstream",
+            "extra"
+          ]
+        },
+        "application": {
+          "endpoints": [
+            "{{localendpoint}}"
+          ],
+          "variables": {
+            "databaseServer": "localhost"
+          },
+          "aliases": [
+            "main"
+          ]
+        },
+        "load": {
+          "endpoints": [
+            "{{localendpoint}}"
+          ],
+          "aliases": [
+            "warmup",
+            "secondary"
+          ]
+        }
+      }
+    },
+    "aspnet-citrine-arm-relay": {
+      "variables": {
+        "serverAddress": "10.0.0.107",
+        "cores": 32
+      },
+      "jobs": {
+        "db": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/citrinedb"
+          ],
+          "aliases": [
+            "downstream",
+            "extra"
+          ]
+        },
+        "application": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/citrinearm"
+          ],
+          "variables": {
+            "databaseServer": "10.0.0.103"
+          },
+          "aliases": [
+            "main"
+          ]
+        },
+        "load": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/citrineload"
+          ],
+          "aliases": [
+            "warmup",
+            "secondary"
+          ]
+        }
+      }
+    },
+    "aspnet-citrine-ampere": {
+      "variables": {
+        "serverAddress": "10.0.0.108",
+        "cores": 80
+      },
+      "jobs": {
+        "db": {
+          "endpoints": [
+            "http://asp-citrine-db:5001"
+          ],
+          "aliases": [
+            "downstream",
+            "extra"
+          ]
+        },
+        "application": {
+          "endpoints": [
+            "http://asp-citrine-ampere:5001"
+          ],
+          "variables": {
+            "databaseServer": "10.0.0.103"
+          },
+          "aliases": [
+            "main"
+          ]
+        },
+        "load": {
+          "endpoints": [
+            "http://asp-citrine-load:5001"
+          ],
+          "aliases": [
+            "warmup",
+            "secondary"
+          ]
+        }
+      }
+    },
+    "aspnet-citrine-arm-lin": {
+      "variables": {
+        "serverAddress": "10.0.0.108",
+        "cores": 80
+      },
+      "jobs": {
+        "db": {
+          "endpoints": [
+            "http://asp-citrine-db:5001"
+          ],
+          "aliases": [
+            "downstream",
+            "extra"
+          ]
+        },
+        "application": {
+          "endpoints": [
+            "http://asp-citrine-ampere:5001"
+          ],
+          "variables": {
+            "databaseServer": "10.0.0.103"
+          },
+          "aliases": [
+            "main"
+          ]
+        },
+        "load": {
+          "endpoints": [
+            "http://asp-citrine-load:5001"
+          ],
+          "aliases": [
+            "warmup",
+            "secondary"
+          ]
+        }
+      }
+    },
+    "aspnet-citrine-arm-lin-relay": {
+      "variables": {
+        "serverAddress": "10.0.0.108",
+        "cores": 80
+      },
+      "jobs": {
+        "db": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/citrinedb"
+          ],
+          "aliases": [
+            "downstream",
+            "extra"
+          ]
+        },
+        "application": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/citrinearmlin"
+          ],
+          "variables": {
+            "databaseServer": "10.0.0.103"
+          },
+          "aliases": [
+            "main"
+          ]
+        },
+        "load": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/citrineload"
+          ],
+          "aliases": [
+            "warmup",
+            "secondary"
+          ]
+        }
+      }
+    },
+    "aspnet-citrine-arm-win": {
+      "variables": {
+        "serverAddress": "10.0.0.110",
+        "cores": 80
+      },
+      "jobs": {
+        "db": {
+          "endpoints": [
+            "http://asp-citrine-db:5001"
+          ],
+          "aliases": [
+            "downstream",
+            "extra"
+          ]
+        },
+        "application": {
+          "endpoints": [
+            "http://10.240.177.200:5001"
+          ],
+          "variables": {
+            "databaseServer": "10.0.0.103"
+          },
+          "aliases": [
+            "main"
+          ]
+        },
+        "load": {
+          "endpoints": [
+            "http://asp-citrine-load:5001"
+          ],
+          "aliases": [
+            "warmup",
+            "secondary"
+          ]
+        }
+      }
+    },
+    "aspnet-citrine-arm-win-relay": {
+      "variables": {
+        "serverAddress": "10.0.0.110",
+        "cores": 80
+      },
+      "jobs": {
+        "db": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/citrinedb"
+          ],
+          "aliases": [
+            "downstream",
+            "extra"
+          ]
+        },
+        "application": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/citrinearmwin"
+          ],
+          "variables": {
+            "databaseServer": "10.0.0.103"
+          },
+          "aliases": [
+            "main"
+          ]
+        },
+        "load": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/citrineload"
+          ],
+          "aliases": [
+            "warmup",
+            "secondary"
+          ]
+        }
+      }
+    },
+    "aspnet-gold-lin": {
+      "variables": {
+        "serverAddress": "10.0.0.121",
+        "cores": 56
+      },
+      "jobs": {
+        "db": {
+          "endpoints": [
+            "http://asp-gold-db:5001"
+          ],
+          "aliases": [
+            "downstream",
+            "extra"
+          ]
+        },
+        "application": {
+          "endpoints": [
+            "http://asp-gold-lin:5001"
+          ],
+          "variables": {
+            "databaseServer": "10.0.0.125"
+          },
+          "aliases": [
+            "main"
+          ]
+        },
+        "load": {
+          "endpoints": [
+            "http://asp-gold-load:5001"
+          ],
+          "aliases": [
+            "warmup",
+            "secondary"
+          ]
+        }
+      }
+    },
+    "aspnet-gold-lin-relay": {
+      "variables": {
+        "serverAddress": "10.0.0.121",
+        "cores": 56
+      },
+      "jobs": {
+        "db": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/golddb"
+          ],
+          "aliases": [
+            "downstream",
+            "extra"
+          ]
+        },
+        "application": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/goldlin"
+          ],
+          "variables": {
+            "databaseServer": "10.0.0.125"
+          },
+          "aliases": [
+            "main"
+          ]
+        },
+        "load": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/goldload"
+          ],
+          "aliases": [
+            "warmup",
+            "secondary"
+          ]
+        }
+      }
+    },
+    "aspnet-gold-win": {
+      "variables": {
+        "serverAddress": "10.0.0.122",
+        "cores": 56
+      },
+      "jobs": {
+        "db": {
+          "endpoints": [
+            "http://asp-gold-db:5001"
+          ],
+          "aliases": [
+            "downstream",
+            "extra"
+          ]
+        },
+        "application": {
+          "endpoints": [
+            "http://asp-gold-win:5001"
+          ],
+          "variables": {
+            "databaseServer": "10.0.0.125"
+          },
+          "aliases": [
+            "main"
+          ]
+        },
+        "load": {
+          "endpoints": [
+            "http://asp-gold-load2:5001"
+          ],
+          "aliases": [
+            "warmup",
+            "secondary"
+          ]
+        }
+      }
+    },
+    "aspnet-gold-win-relay": {
+      "variables": {
+        "serverAddress": "10.0.0.122",
+        "cores": 56
+      },
+      "jobs": {
+        "db": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/golddb"
+          ],
+          "aliases": [
+            "downstream",
+            "extra"
+          ]
+        },
+        "application": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/goldwin"
+          ],
+          "variables": {
+            "databaseServer": "10.0.0.204"
+          },
+          "aliases": [
+            "main"
+          ]
+        },
+        "load": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/goldload2"
+          ],
+          "aliases": [
+            "warmup",
+            "secondary"
+          ]
+        }
+      }
+    },
+    "aspnet-siryn-arm-lin": {
+      "variables": {
+        "serverAddress": "10.0.0.111",
+        "cores": 128
+      },
+      "jobs": {
+        "db": {
+          "endpoints": [
+            "http://asp-citrine-db:5001"
+          ],
+          "aliases": [
+            "downstream",
+            "extra"
+          ]
+        },
+        "application": {
+          "endpoints": [
+            "http://asp-siryn-lin:5001"
+          ],
+          "variables": {
+            "databaseServer": "10.0.0.103"
+          },
+          "aliases": [
+            "main"
+          ]
+        },
+        "load": {
+          "endpoints": [
+            "http://asp-citrine-load:5001"
+          ],
+          "aliases": [
+            "warmup",
+            "secondary"
+          ]
+        }
+      }
+    },
+    "aspnet-siryn-arm-lin-relay": {
+      "variables": {
+        "serverAddress": "10.0.0.111",
+        "cores": 128
+      },
+      "jobs": {
+        "db": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/citrinedb"
+          ],
+          "aliases": [
+            "downstream",
+            "extra"
+          ]
+        },
+        "application": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/sirynlin"
+          ],
+          "variables": {
+            "databaseServer": "10.0.0.103"
+          },
+          "aliases": [
+            "main"
+          ]
+        },
+        "load": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/citrineload"
+          ],
+          "aliases": [
+            "warmup",
+            "secondary"
+          ]
+        }
+      }
+    },
+    "aspnet-cobalt-hosted-lin": {
+      "variables": {
+        "serverAddress": "10.57.32.73",
+        "cores": 56
+      },
+      "jobs": {
+        "db": {
+          "endpoints": [
+            "http://10.57.32.74:5001"
+          ],
+          "aliases": [
+            "downstream",
+            "extra"
+          ]
+        },
+        "application": {
+          "endpoints": [
+            "http://10.57.32.73:5001"
+          ],
+          "variables": {
+            "databaseServer": "10.57.32.74"
+          },
+          "aliases": [
+            "main"
+          ]
+        },
+        "load": {
+          "endpoints": [
+            "http://10.57.32.72:5001"
+          ],
+          "aliases": [
+            "warmup",
+            "secondary"
+          ]
+        }
+      }
+    },
+    "aspnet-cobalt-hosted-lin-relay": {
+      "variables": {
+        "serverAddress": "10.57.32.73",
+        "cores": 56
+      },
+      "jobs": {
+        "db": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/cobalthostedlindb"
+          ],
+          "aliases": [
+            "downstream",
+            "extra"
+          ]
+        },
+        "application": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/cobalthostedlinserver"
+          ],
+          "variables": {
+            "databaseServer": "10.57.32.74"
+          },
+          "aliases": [
+            "main"
+          ]
+        },
+        "load": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/cobalthostedlinclient"
+          ],
+          "aliases": [
+            "warmup",
+            "secondary"
+          ]
+        }
+      }
+    },
+    "aspnet-cobalt-hosted-al3-lin": {
+      "variables": {
+        "serverAddress": "10.57.32.95",
+        "cores": 56
+      },
+      "jobs": {
+        "db": {
+          "endpoints": [
+            "http://10.57.32.94:5001"
+          ],
+          "aliases": [
+            "downstream",
+            "extra"
+          ]
+        },
+        "application": {
+          "endpoints": [
+            "http://10.57.32.95:5001"
+          ],
+          "variables": {
+            "databaseServer": "10.57.32.94"
+          },
+          "aliases": [
+            "main"
+          ]
+        },
+        "load": {
+          "endpoints": [
+            "http://10.57.32.96:5001"
+          ],
+          "aliases": [
+            "warmup",
+            "secondary"
+          ]
+        }
+      }
+    },
+    "aspnet-cobalt-hosted-al3-lin-relay": {
+      "variables": {
+        "serverAddress": "10.57.32.95",
+        "cores": 56
+      },
+      "jobs": {
+        "db": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/cobalthostedlindb_azurelinux3"
+          ],
+          "aliases": [
+            "downstream",
+            "extra"
+          ]
+        },
+        "application": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/cobalthostedlinserver_azurelinux3"
+          ],
+          "variables": {
+            "databaseServer": "10.57.32.94"
+          },
+          "aliases": [
+            "main"
+          ]
+        },
+        "load": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/cobalthostedlinclient_azurelinux3"
+          ],
+          "aliases": [
+            "warmup",
+            "secondary"
+          ]
+        }
+      }
+    }
+  },
+  "variables": {
+    "localendpoint": "http://localhost:5010",
+    "serverPort": 5000,
+    "benchmarksCommit": "main"
+  },
+  "jobs": {
+    "httpSysServer": {
+      "source": {
+        "repository": "https://github.com/aspnet/benchmarks.git",
+        "branchOrCommit": "{{benchmarksCommit}}",
+        "project": "src/BenchmarksApps/TLS/HttpSys/HttpSys.csproj"
+      },
+      "readyStateText": "Application started.",
+      "variables": {
+        "mTLS": false,
+        "tlsRenegotiation": false,
+        "certPublicKeyLength": 2048,
+        "certValidationConsoleEnabled": false,
+        "statsEnabled": false,
+        "logRequestDetails": false
+      },
+      "arguments": "--urls https://{{serverAddress}}:{{serverPort}} --mTLS {{mTLS}} --certValidationConsoleEnabled {{certValidationConsoleEnabled}} --statsEnabled {{statsEnabled}} --tlsRenegotiation {{tlsRenegotiation}} --logRequestDetails {{logRequestDetails}} --certPublicKeyLength {{certPublicKeyLength}}"
+    },
+    "kestrelServer": {
+      "source": {
+        "repository": "https://github.com/aspnet/benchmarks.git",
+        "branchOrCommit": "{{benchmarksCommit}}",
+        "project": "src/BenchmarksApps/TLS/Kestrel/Kestrel.csproj"
+      },
+      "readyStateText": "Application started.",
+      "variables": {
+        "mTLS": false,
+        "tlsRenegotiation": false,
+        "tlsProtocols": "tls12,tls13",
+        "certPublicKeyLength": 2048,
+        "certValidationConsoleEnabled": false,
+        "statsEnabled": false,
+        "logRequestDetails": false
+      },
+      "arguments": "--urls https://{{serverAddress}}:{{serverPort}} --mTLS {{mTLS}} --certValidationConsoleEnabled {{certValidationConsoleEnabled}} --tlsProtocols {{tlsProtocols}} --statsEnabled {{statsEnabled}} --tlsRenegotiation {{tlsRenegotiation}} --logRequestDetails {{logRequestDetails}} --certPublicKeyLength {{certPublicKeyLength}}"
+    },
+    "dockerLinuxKestrelServer": {
+      "sources": {
+        "dockerKestrel": {
+          "repository": "https://github.com/aspnet/benchmarks.git",
+          "branchOrCommit": "{{benchmarksCommit}}"
+        }
+      },
+      "dockerFile": "dockerKestrel/src/BenchmarksApps/TLS/Kestrel/Dockerfile",
+      "dockerImageName": "dockerKestrel",
+      "dockerContextDirectory": "dockerKestrel/src/BenchmarksApps/TLS/Kestrel",
+      "port": 8080,
+      "readyStateText": "Application started.",
+      "environmentVariables": {
+        "urls": "https://*:8080",
+        "mTLS": false,
+        "tlsRenegotiation": false,
+        "certValidationConsoleEnabled": false,
+        "statsEnabled": false
+      }
+    },
+    "dockerLinuxNginxServer": {
+      "sources": {
+        "dockerNginx": {
+          "repository": "https://github.com/aspnet/benchmarks.git",
+          "branchOrCommit": "{{benchmarksCommit}}"
+        }
+      },
+      "dockerFile": "dockerNginx/src/BenchmarksApps/TLS/Nginx/Dockerfile",
+      "dockerImageName": "dockerNginx",
+      "dockerContextDirectory": "dockerNginx/src/BenchmarksApps/TLS",
+      "port": 5000,
+      "readyStateText": "Application started.",
+      "environmentVariables": {
+        "urls": "https://*:5000"
+      }
+    }
+  },
+  "scenarios": {
+    "tls-handshakes-httpsys": {
+      "application": {
+        "job": "httpSysServer",
+        "variables": {
+          "certPublicKeyLength": 2048
+        }
+      },
+      "load": {
+        "job": "httpclient",
+        "variables": {
+          "path": "/hello-world",
+          "presetHeaders": "connectionclose",
+          "connections": 32,
+          "serverScheme": "https",
+          "sslProtocol": "tls12"
+        }
+      }
+    },
+    "mTls-handshakes-httpsys": {
+      "application": {
+        "job": "httpSysServer",
+        "variables": {
+          "certPublicKeyLength": 2048,
+          "mTLS": true,
+          "tlsRenegotiation": true
+        }
+      },
+      "load": {
+        "job": "httpclient",
+        "variables": {
+          "path": "/hello-world",
+          "presetHeaders": "connectionclose",
+          "connections": 32,
+          "serverScheme": "https",
+          "certPath": "https://raw.githubusercontent.com/aspnet/Benchmarks/{{benchmarksCommit}}/src/BenchmarksApps/TLS/Certificates/2048/testCert-2048.pfx",
+          "certPwd": "testPassword",
+          "sslProtocol": "tls12"
+        }
+      }
+    },
+    "tls-renegotiation-httpsys": {
+      "application": {
+        "job": "httpSysServer",
+        "variables": {
+          "certPublicKeyLength": 2048,
+          "tlsRenegotiation": true
+        }
+      },
+      "load": {
+        "job": "httpclient",
+        "variables": {
+          "path": "/hello-world",
+          "presetHeaders": "connectionclose",
+          "connections": 32,
+          "serverScheme": "https",
+          "certPath": "https://raw.githubusercontent.com/aspnet/Benchmarks/{{benchmarksCommit}}/src/BenchmarksApps/TLS/Certificates/2048/testCert-2048.pfx",
+          "certPwd": "testPassword",
+          "sslProtocol": "tls12"
+        }
+      }
+    },
+    "tls-handshakes-docker-nginx": {
+      "application": {
+        "job": "dockerLinuxNginxServer",
+        "buildArguments": [
+          "CERT_KEY_LENGTH=2048",
+          "ENABLE_FIPS_MODE=true"
+        ]
+      },
+      "load": {
+        "job": "httpclient",
+        "variables": {
+          "path": "/hello-world",
+          "presetHeaders": "connectionclose",
+          "connections": 32,
+          "serverScheme": "https",
+          "sslProtocol": "tls12",
+          "serverPort": 5000
+        }
+      }
+    },
+    "tls-handshakes-kestrel": {
+      "application": {
+        "job": "kestrelServer",
+        "variables": {
+          "certPublicKeyLength": 2048
+        }
+      },
+      "load": {
+        "job": "httpclient",
+        "variables": {
+          "path": "/hello-world",
+          "presetHeaders": "connectionclose",
+          "connections": 32,
+          "serverScheme": "https",
+          "sslProtocol": "tls12"
+        }
+      }
+    },
+    "mTls-handshakes-kestrel": {
+      "application": {
+        "job": "kestrelServer",
+        "variables": {
+          "certPublicKeyLength": 2048,
+          "mTLS": true
+        }
+      },
+      "load": {
+        "job": "httpclient",
+        "variables": {
+          "path": "/hello-world",
+          "presetHeaders": "connectionclose",
+          "connections": 32,
+          "serverScheme": "https",
+          "certPath": "https://raw.githubusercontent.com/aspnet/Benchmarks/{{benchmarksCommit}}/src/BenchmarksApps/TLS/Certificates/2048/testCert-2048.pfx",
+          "certPwd": "testPassword",
+          "sslProtocol": "tls12"
+        }
+      }
+    },
+    "tls-renegotiation-kestrel": {
+      "application": {
+        "job": "kestrelServer",
+        "variables": {
+          "certPublicKeyLength": 2048,
+          "mTLS": false,
+          "tlsRenegotiation": true
+        }
+      },
+      "load": {
+        "job": "httpclient",
+        "variables": {
+          "path": "/hello-world",
+          "presetHeaders": "connectionclose",
+          "connections": 32,
+          "serverScheme": "https",
+          "certPath": "https://raw.githubusercontent.com/aspnet/Benchmarks/{{benchmarksCommit}}/src/BenchmarksApps/TLS/Certificates/2048/testCert-2048.pfx",
+          "certPwd": "testPassword",
+          "sslProtocol": "tls12"
+        }
+      }
+    },
+    "tls-handshakes-docker-openssl-332": {
+      "application": {
+        "job": "dockerLinuxKestrelServer",
+        "buildArguments": [
+          "OPENSSL_VERSION=\"3.3.3-r0\"",
+          "ALPINE_BRANCH=\"v3.21\""
+        ]
+      },
+      "load": {
+        "job": "httpclient",
+        "variables": {
+          "path": "/hello-world",
+          "serverPort": 8080,
+          "presetHeaders": "connectionclose",
+          "connections": 32,
+          "serverScheme": "https",
+          "sslProtocol": "tls12"
+        }
+      }
+    },
+    "tls-handshakes-docker-openssl-111": {
+      "application": {
+        "job": "dockerLinuxKestrelServer",
+        "buildArguments": [
+          "OPENSSL_VERSION=\"1.1.1w-r1\"",
+          "ALPINE_BRANCH=\"v3.16\""
+        ]
+      },
+      "load": {
+        "job": "httpclient",
+        "variables": {
+          "path": "/hello-world",
+          "serverPort": 8080,
+          "presetHeaders": "connectionclose",
+          "connections": 32,
+          "serverScheme": "https",
+          "sslProtocol": "tls12"
+        }
+      }
+    },
+    "tls-handshakes-docker-openssl-3015": {
+      "application": {
+        "job": "dockerLinuxKestrelServer",
+        "buildArguments": [
+          "OPENSSL_VERSION=\"3.0.15-r1\"",
+          "ALPINE_BRANCH=\"v3.17\""
+        ]
+      },
+      "load": {
+        "job": "httpclient",
+        "variables": {
+          "path": "/hello-world",
+          "serverPort": 8080,
+          "presetHeaders": "connectionclose",
+          "connections": 32,
+          "serverScheme": "https",
+          "sslProtocol": "tls12"
+        }
+      }
+    },
+    "tls-handshakes-docker-azurelinux": {
+      "application": {
+        "job": "dockerLinuxKestrelServer",
+        "dockerFile": "dockerKestrel/src/BenchmarksApps/TLS/Kestrel/Dockerfile.azurelinux"
+      },
+      "load": {
+        "job": "httpclient",
+        "variables": {
+          "path": "/hello-world",
+          "serverPort": 8080,
+          "presetHeaders": "connectionclose",
+          "connections": 32,
+          "serverScheme": "https",
+          "sslProtocol": "tls12"
+        }
+      }
+    }
+  }
+}

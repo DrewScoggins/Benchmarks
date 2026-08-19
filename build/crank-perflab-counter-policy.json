@@ -17,7 +17,12 @@
       "higherIsBetter": false,
       "topCounter": true,
       "defaultCounter": false,
-      "regressionThreshold": 0.05
+      "regressionThreshold": 0.05,
+      "applicability": {
+        "excludeScenarioFamilies": [
+          "aspnet-request-rejection"
+        ]
+      }
     },
     {
       "path": "jobs.load.results['http/latency/99']",
@@ -26,7 +31,12 @@
       "higherIsBetter": false,
       "topCounter": true,
       "defaultCounter": false,
-      "regressionThreshold": 0.05
+      "regressionThreshold": 0.05,
+      "applicability": {
+        "excludeScenarioFamilies": [
+          "aspnet-request-rejection"
+        ]
+      }
     },
     {
       "path": "jobs.application.results['benchmarks/start-time']",

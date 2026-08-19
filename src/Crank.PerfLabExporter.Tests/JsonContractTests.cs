@@ -157,6 +157,25 @@ namespace Crank.PerfLabExporter.Tests
         }
 
         [Fact]
+        public void RoundTripsCounterFamilyApplicability()
+        {
+            var policy = ContractTestData.CreateValidPolicy();
+
+            var json = JsonSerializer.Serialize(policy, SerializerOptions);
+            var roundTrip = JsonSerializer.Deserialize<CounterPolicy>(
+                json,
+                SerializerOptions);
+
+            Assert.NotNull(roundTrip);
+            Assert.Contains(
+                "aspnet-request-rejection",
+                roundTrip.Mappings[1]
+                    .Applicability!
+                    .ExcludeScenarioFamilies);
+            Assert.Empty(CounterPolicyValidator.Validate(roundTrip));
+        }
+
+        [Fact]
         public void WritesLaneFamilyAndDependencyMetadataNames()
         {
             var json = JsonSerializer.Serialize(ContractTestData.CreateValidIdentity(), SerializerOptions);

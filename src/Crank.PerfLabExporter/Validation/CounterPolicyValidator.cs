@@ -107,6 +107,91 @@ namespace Crank.PerfLabExporter.Validation
                     errors.Add(new($"{path}.normalization.offset", "The normalization offset must be finite."));
                 }
             }
+
+            ValidateApplicability(
+                mapping.Applicability,
+                mapping.DefaultCounter,
+                $"{path}.applicability",
+                errors);
+        }
+
+        private static void ValidateApplicability(
+            CounterApplicability? applicability,
+            bool defaultCounter,
+            string path,
+            List<ContractValidationError> errors)
+        {
+            if (applicability is null)
+            {
+                return;
+            }
+
+            var included = applicability.IncludeScenarioFamilies;
+            var excluded = applicability.ExcludeScenarioFamilies;
+            ValidateFamilyList(included, $"{path}.includeScenarioFamilies", errors);
+            ValidateFamilyList(excluded, $"{path}.excludeScenarioFamilies", errors);
+
+            if ((included?.Count ?? 0) == 0 && (excluded?.Count ?? 0) == 0)
+            {
+                errors.Add(new(path, "Applicability must include or exclude at least one scenario family."));
+            }
+
+            if (defaultCounter)
+            {
+                errors.Add(new(path, "The default mapping must apply to every scenario family."));
+            }
+
+            if (included is null || excluded is null)
+            {
+                return;
+            }
+
+            var overlap = included
+                .Where(family => !string.IsNullOrWhiteSpace(family))
+                .Intersect(
+                    excluded.Where(family => !string.IsNullOrWhiteSpace(family)),
+                    StringComparer.OrdinalIgnoreCase)
+                .OrderBy(family => family, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            if (overlap.Count > 0)
+            {
+                errors.Add(new(
+                    path,
+                    $"Scenario families cannot be both included and excluded: {string.Join(", ", overlap)}."));
+            }
+        }
+
+        private static void ValidateFamilyList(
+            IReadOnlyList<string>? families,
+            string path,
+            List<ContractValidationError> errors)
+        {
+            if (families is null)
+            {
+                errors.Add(new(path, "Scenario families must be an array."));
+                return;
+            }
+
+            for (var index = 0; index < families.Count; index++)
+            {
+                var family = families[index];
+                if (string.IsNullOrWhiteSpace(family) ||
+                    !string.Equals(family, family.Trim(), StringComparison.Ordinal))
+                {
+                    errors.Add(new($"{path}[{index}]", "A non-empty, trimmed scenario family is required."));
+                }
+            }
+
+            var duplicates = families
+                .Where(family => !string.IsNullOrWhiteSpace(family))
+                .GroupBy(family => family, StringComparer.OrdinalIgnoreCase)
+                .Where(group => group.Count() > 1)
+                .Select(group => group.Key)
+                .OrderBy(family => family, StringComparer.OrdinalIgnoreCase);
+            foreach (var duplicate in duplicates)
+            {
+                errors.Add(new(path, $"Scenario family '{duplicate}' is duplicated."));
+            }
         }
 
         private static void ValidateUnmappedCounter(

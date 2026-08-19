@@ -137,9 +137,9 @@ namespace Crank.PerfLabExporter.Conversion
                                 properties.Get("lane.os.name"),
                                 GetEnvironmentValue(
                                     primaryEnvironment,
+                                    "os",
                                     "operatingSystem",
-                                    "osDescription",
-                                    "os")),
+                                    "osDescription")),
                             "operating-system name"),
                         Architecture = Required(
                             Select(
@@ -147,6 +147,7 @@ namespace Crank.PerfLabExporter.Conversion
                                 properties.Get("lane.os.architecture"),
                                 GetEnvironmentValue(
                                     primaryEnvironment,
+                                    "arch",
                                     "architecture",
                                     "processArchitecture")),
                             "architecture"),
@@ -256,6 +257,7 @@ namespace Crank.PerfLabExporter.Conversion
         {
             var observedArchitecture = GetEnvironmentValue(
                 environment,
+                "arch",
                 "architecture",
                 "processArchitecture");
             if (!string.IsNullOrWhiteSpace(observedArchitecture) &&
@@ -268,6 +270,23 @@ namespace Crank.PerfLabExporter.Conversion
                     $"Declared lane architecture '{identity.Lane.Os.Architecture}' " +
                     $"contradicts application environment architecture " +
                     $"'{observedArchitecture}'.");
+            }
+
+            var observedOperatingSystem = GetEnvironmentValue(
+                environment,
+                "os",
+                "operatingSystem",
+                "osDescription");
+            if (!string.IsNullOrWhiteSpace(observedOperatingSystem) &&
+                !string.Equals(
+                    NormalizeOperatingSystem(identity.Lane.Os.Name),
+                    NormalizeOperatingSystem(observedOperatingSystem),
+                    StringComparison.Ordinal))
+            {
+                throw new CrankConversionException(
+                    $"Declared lane operating system '{identity.Lane.Os.Name}' " +
+                    $"contradicts application environment operating system " +
+                    $"'{observedOperatingSystem}'.");
             }
 
             var observedLocale = GetEnvironmentValue(
@@ -567,6 +586,47 @@ namespace Crank.PerfLabExporter.Conversion
                 "aarch64" => "arm64",
                 var value => value
             };
+        }
+
+        private static string NormalizeOperatingSystem(string operatingSystem)
+        {
+            var value = operatingSystem.Trim().ToLowerInvariant();
+            // Crank's Newtonsoft endpoint emits its Linux/Windows/OSX enum as 0/1/2.
+            if (value == "0")
+            {
+                return "linux";
+            }
+
+            if (value == "1")
+            {
+                return "windows";
+            }
+
+            if (value == "2")
+            {
+                return "osx";
+            }
+
+            if (value.Contains("windows", StringComparison.Ordinal))
+            {
+                return "windows";
+            }
+
+            if (value.Contains("linux", StringComparison.Ordinal) ||
+                value.Contains("ubuntu", StringComparison.Ordinal))
+            {
+                return "linux";
+            }
+
+            if (value.Contains("osx", StringComparison.Ordinal) ||
+                value.Contains("macos", StringComparison.Ordinal) ||
+                value.Contains("mac os", StringComparison.Ordinal) ||
+                value.Contains("darwin", StringComparison.Ordinal))
+            {
+                return "osx";
+            }
+
+            return value;
         }
 
         private static List<string> DistinctValues(

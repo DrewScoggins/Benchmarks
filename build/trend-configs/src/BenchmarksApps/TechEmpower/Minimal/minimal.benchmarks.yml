@@ -1,0 +1,885 @@
+{
+  "imports": [
+    "https://raw.githubusercontent.com/dotnet/crank/main/src/Microsoft.Crank.Jobs.Wrk/wrk.yml"
+  ],
+  "profiles": {
+    "latest-extensions-packages": {
+      "jobs": {
+        "application": {
+          "packageReferences": {
+            "Microsoft.Extensions.Caching.Abstractions": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Caching.Memory": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Configuration.Abstractions": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Configuration.Binder": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Configuration.CommandLine": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Configuration.EnvironmentVariables": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Configuration.FileExtensions": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Configuration.Ini": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Configuration.Json": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Configuration.UserSecrets": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Configuration.Xml": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Configuration": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.DependencyInjection.Abstractions": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.DependencyInjection": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.FileProviders.Abstractions": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.FileProviders.Composite": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.FileProviders.Physical": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.FileSystemGlobbing": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Hosting.Abstractions": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Hosting": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Http": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Logging.Abstractions": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Logging.Configuration": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Logging.Console": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Logging.Debug": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Logging.EventSource": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Logging.EventLog": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Logging.TraceSource": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Logging": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Options.ConfigurationExtensions": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Options.DataAnnotations": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Options": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.Primitives": "$(MicrosoftNETCoreAppPackageVersion)",
+            "Microsoft.Extensions.DependencyModel": "$(MicrosoftNETCoreAppPackageVersion)",
+            "System.IO.Pipelines": "$(MicrosoftNETCoreAppPackageVersion)"
+          }
+        }
+      }
+    },
+    "short": {
+      "variables": {
+        "warmup": 3,
+        "duration": 7
+      }
+    },
+    "noload": {
+      "variables": {
+        "warmup": 0,
+        "duration": 0
+      }
+    },
+    "pgo": {
+      "jobs": {
+        "application": {
+          "agent": "main",
+          "environmentVariables": [
+            {
+              "DOTNET_TieredPGO": 1
+            },
+            {
+              "DOTNET_TC_QuickJitForLoops": 1
+            },
+            {
+              "DOTNET_ReadyToRun": 0
+            }
+          ]
+        }
+      }
+    },
+    "local": {
+      "variables": {
+        "mainAddress": "localhost",
+        "secondaryAddress": "localhost",
+        "extraAddress": "localhost",
+        "serverAddress": "localhost",
+        "databaseServer": "localhost",
+        "downstreamAddress": "localhost"
+      },
+      "agents": {
+        "main": {
+          "endpoints": [
+            "http://localhost:5010"
+          ],
+          "aliases": [
+            "application"
+          ]
+        },
+        "secondary": {
+          "endpoints": [
+            "http://localhost:5010"
+          ],
+          "aliases": [
+            "load",
+            "warmup"
+          ]
+        },
+        "extra": {
+          "endpoints": [
+            "http://localhost:5010"
+          ],
+          "aliases": [
+            "db",
+            "downstream"
+          ]
+        }
+      }
+    },
+    "aspnet-citrine-arm-lin": {
+      "variables": {
+        "mainAddress": "10.0.0.108",
+        "secondaryAddress": "10.0.0.105",
+        "extraAddress": "10.0.0.103",
+        "serverAddress": "10.0.0.108",
+        "databaseServer": "10.0.0.103",
+        "downstreamAddress": "10.0.0.103",
+        "cores": 80
+      },
+      "agents": {
+        "main": {
+          "endpoints": [
+            "http://asp-citrine-ampere:5001"
+          ],
+          "aliases": [
+            "application"
+          ]
+        },
+        "secondary": {
+          "endpoints": [
+            "http://asp-citrine-load:5001"
+          ],
+          "aliases": [
+            "load",
+            "warmup"
+          ]
+        },
+        "extra": {
+          "endpoints": [
+            "http://asp-citrine-db:5001"
+          ],
+          "aliases": [
+            "db",
+            "downstream"
+          ]
+        }
+      }
+    },
+    "aspnet-citrine-arm-lin-relay": {
+      "variables": {
+        "mainAddress": "10.0.0.108",
+        "secondaryAddress": "10.0.0.105",
+        "extraAddress": "10.0.0.103",
+        "serverAddress": "10.0.0.108",
+        "databaseServer": "10.0.0.103",
+        "downstreamAddress": "10.0.0.103",
+        "cores": 80
+      },
+      "agents": {
+        "main": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/citrinearmlin"
+          ],
+          "aliases": [
+            "application"
+          ]
+        },
+        "secondary": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/citrineload"
+          ],
+          "aliases": [
+            "load",
+            "warmup"
+          ]
+        },
+        "extra": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/citrinedb"
+          ],
+          "aliases": [
+            "db",
+            "downstream"
+          ]
+        }
+      }
+    },
+    "aspnet-citrine-arm-win": {
+      "variables": {
+        "mainAddress": "10.0.0.110",
+        "secondaryAddress": "10.0.0.105",
+        "extraAddress": "10.0.0.103",
+        "serverAddress": "10.0.0.110",
+        "databaseServer": "10.0.0.103",
+        "downstreamAddress": "10.0.0.103",
+        "cores": 80
+      },
+      "agents": {
+        "main": {
+          "endpoints": [
+            "http://10.240.177.200:5001"
+          ],
+          "aliases": [
+            "application"
+          ]
+        },
+        "secondary": {
+          "endpoints": [
+            "http://asp-citrine-load:5001"
+          ],
+          "aliases": [
+            "load",
+            "warmup"
+          ]
+        },
+        "extra": {
+          "endpoints": [
+            "http://asp-citrine-db:5001"
+          ],
+          "aliases": [
+            "db",
+            "downstream"
+          ]
+        }
+      }
+    },
+    "aspnet-citrine-arm-win-relay": {
+      "variables": {
+        "mainAddress": "10.0.0.110",
+        "secondaryAddress": "10.0.0.105",
+        "extraAddress": "10.0.0.103",
+        "serverAddress": "10.0.0.110",
+        "databaseServer": "10.0.0.103",
+        "downstreamAddress": "10.0.0.103",
+        "cores": 80
+      },
+      "agents": {
+        "main": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/citrinearmwin"
+          ],
+          "aliases": [
+            "application"
+          ]
+        },
+        "secondary": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/citrineload"
+          ],
+          "aliases": [
+            "load",
+            "warmup"
+          ]
+        },
+        "extra": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/citrinedb"
+          ],
+          "aliases": [
+            "db",
+            "downstream"
+          ]
+        }
+      }
+    },
+    "aspnet-gold-lin": {
+      "variables": {
+        "mainAddress": "10.0.0.121",
+        "secondaryAddress": "10.0.0.123",
+        "extraAddress": "10.0.0.125",
+        "serverAddress": "10.0.0.121",
+        "databaseServer": "10.0.0.125",
+        "downstreamAddress": "10.0.0.125",
+        "cores": 56
+      },
+      "agents": {
+        "main": {
+          "endpoints": [
+            "http://asp-gold-lin:5001"
+          ],
+          "aliases": [
+            "application"
+          ]
+        },
+        "secondary": {
+          "endpoints": [
+            "http://asp-gold-load:5001"
+          ],
+          "aliases": [
+            "load",
+            "warmup"
+          ]
+        },
+        "extra": {
+          "endpoints": [
+            "http://asp-gold-db:5001"
+          ],
+          "aliases": [
+            "db",
+            "downstream"
+          ]
+        }
+      }
+    },
+    "aspnet-gold-lin-relay": {
+      "variables": {
+        "mainAddress": "10.0.0.121",
+        "secondaryAddress": "10.0.0.123",
+        "extraAddress": "10.0.0.125",
+        "serverAddress": "10.0.0.121",
+        "databaseServer": "10.0.0.125",
+        "downstreamAddress": "10.0.0.125",
+        "cores": 56
+      },
+      "agents": {
+        "main": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/goldlin"
+          ],
+          "aliases": [
+            "application"
+          ]
+        },
+        "secondary": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/goldload"
+          ],
+          "aliases": [
+            "load",
+            "warmup"
+          ]
+        },
+        "extra": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/golddb"
+          ],
+          "aliases": [
+            "db",
+            "downstream"
+          ]
+        }
+      }
+    },
+    "aspnet-gold-win": {
+      "variables": {
+        "mainAddress": "10.0.0.122",
+        "secondaryAddress": "10.0.0.124",
+        "extraAddress": "10.0.0.125",
+        "serverAddress": "10.0.0.122",
+        "databaseServer": "10.0.0.125",
+        "downstreamAddress": "10.0.0.125",
+        "cores": 56
+      },
+      "agents": {
+        "main": {
+          "endpoints": [
+            "http://asp-gold-win:5001"
+          ],
+          "aliases": [
+            "application"
+          ]
+        },
+        "secondary": {
+          "endpoints": [
+            "http://asp-gold-load2:5001"
+          ],
+          "aliases": [
+            "load",
+            "warmup"
+          ]
+        },
+        "extra": {
+          "endpoints": [
+            "http://asp-gold-db:5001"
+          ],
+          "aliases": [
+            "db",
+            "downstream"
+          ]
+        }
+      }
+    },
+    "aspnet-gold-win-relay": {
+      "variables": {
+        "mainAddress": "10.0.0.122",
+        "secondaryAddress": "10.0.0.124",
+        "extraAddress": "10.0.0.125",
+        "serverAddress": "10.0.0.122",
+        "databaseServer": "10.0.0.125",
+        "downstreamAddress": "10.0.0.125",
+        "cores": 56
+      },
+      "agents": {
+        "main": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/goldwin"
+          ],
+          "aliases": [
+            "application"
+          ]
+        },
+        "secondary": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/goldload2"
+          ],
+          "aliases": [
+            "load",
+            "warmup"
+          ]
+        },
+        "extra": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/golddb"
+          ],
+          "aliases": [
+            "db",
+            "downstream"
+          ]
+        }
+      }
+    },
+    "aspnet-siryn-arm-lin": {
+      "variables": {
+        "mainAddress": "10.0.0.111",
+        "secondaryAddress": "10.0.0.105",
+        "extraAddress": "10.0.0.103",
+        "serverAddress": "10.0.0.111",
+        "databaseServer": "10.0.0.103",
+        "downstreamAddress": "10.0.0.103",
+        "cores": 128
+      },
+      "agents": {
+        "main": {
+          "endpoints": [
+            "http://asp-siryn-lin:5001"
+          ],
+          "aliases": [
+            "application"
+          ]
+        },
+        "secondary": {
+          "endpoints": [
+            "http://asp-citrine-load:5001"
+          ],
+          "aliases": [
+            "load",
+            "warmup"
+          ]
+        },
+        "extra": {
+          "endpoints": [
+            "http://asp-citrine-db:5001"
+          ],
+          "aliases": [
+            "db",
+            "downstream"
+          ]
+        }
+      }
+    },
+    "aspnet-siryn-arm-lin-relay": {
+      "variables": {
+        "mainAddress": "10.0.0.111",
+        "secondaryAddress": "10.0.0.105",
+        "extraAddress": "10.0.0.103",
+        "serverAddress": "10.0.0.111",
+        "databaseServer": "10.0.0.103",
+        "downstreamAddress": "10.0.0.103",
+        "cores": 128
+      },
+      "agents": {
+        "main": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/sirynlin"
+          ],
+          "aliases": [
+            "application"
+          ]
+        },
+        "secondary": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/citrineload"
+          ],
+          "aliases": [
+            "load",
+            "warmup"
+          ]
+        },
+        "extra": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/citrinedb"
+          ],
+          "aliases": [
+            "db",
+            "downstream"
+          ]
+        }
+      }
+    },
+    "aspnet-cobalt-hosted-lin": {
+      "variables": {
+        "mainAddress": "10.57.32.73",
+        "secondaryAddress": "10.57.32.72",
+        "extraAddress": "10.57.32.74",
+        "serverAddress": "10.57.32.73",
+        "databaseServer": "10.57.32.74",
+        "downstreamAddress": "10.57.32.74",
+        "cores": 56
+      },
+      "agents": {
+        "main": {
+          "endpoints": [
+            "http://10.57.32.73:5001"
+          ],
+          "aliases": [
+            "application"
+          ]
+        },
+        "secondary": {
+          "endpoints": [
+            "http://10.57.32.72:5001"
+          ],
+          "aliases": [
+            "load",
+            "warmup"
+          ]
+        },
+        "extra": {
+          "endpoints": [
+            "http://10.57.32.74:5001"
+          ],
+          "aliases": [
+            "db",
+            "downstream"
+          ]
+        }
+      }
+    },
+    "aspnet-cobalt-hosted-lin-relay": {
+      "variables": {
+        "mainAddress": "10.57.32.73",
+        "secondaryAddress": "10.57.32.72",
+        "extraAddress": "10.57.32.74",
+        "serverAddress": "10.57.32.73",
+        "databaseServer": "10.57.32.74",
+        "downstreamAddress": "10.57.32.74",
+        "cores": 56
+      },
+      "agents": {
+        "main": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/cobalthostedlinserver"
+          ],
+          "aliases": [
+            "application"
+          ]
+        },
+        "secondary": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/cobalthostedlinclient"
+          ],
+          "aliases": [
+            "load",
+            "warmup"
+          ]
+        },
+        "extra": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/cobalthostedlindb"
+          ],
+          "aliases": [
+            "db",
+            "downstream"
+          ]
+        }
+      }
+    },
+    "aspnet-cobalt-hosted-al3-lin": {
+      "variables": {
+        "mainAddress": "10.57.32.95",
+        "secondaryAddress": "10.57.32.96",
+        "extraAddress": "10.57.32.94",
+        "serverAddress": "10.57.32.95",
+        "databaseServer": "10.57.32.94",
+        "downstreamAddress": "10.57.32.94",
+        "cores": 56
+      },
+      "agents": {
+        "main": {
+          "endpoints": [
+            "http://10.57.32.95:5001"
+          ],
+          "aliases": [
+            "application"
+          ]
+        },
+        "secondary": {
+          "endpoints": [
+            "http://10.57.32.96:5001"
+          ],
+          "aliases": [
+            "load",
+            "warmup"
+          ]
+        },
+        "extra": {
+          "endpoints": [
+            "http://10.57.32.94:5001"
+          ],
+          "aliases": [
+            "db",
+            "downstream"
+          ]
+        }
+      }
+    },
+    "aspnet-cobalt-hosted-al3-lin-relay": {
+      "variables": {
+        "mainAddress": "10.57.32.95",
+        "secondaryAddress": "10.57.32.96",
+        "extraAddress": "10.57.32.94",
+        "serverAddress": "10.57.32.95",
+        "databaseServer": "10.57.32.94",
+        "downstreamAddress": "10.57.32.94",
+        "cores": 56
+      },
+      "agents": {
+        "main": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/cobalthostedlinserver_azurelinux3"
+          ],
+          "aliases": [
+            "application"
+          ]
+        },
+        "secondary": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/cobalthostedlinclient_azurelinux3"
+          ],
+          "aliases": [
+            "load",
+            "warmup"
+          ]
+        },
+        "extra": {
+          "endpoints": [
+            "https://aspnetperf.servicebus.windows.net/cobalthostedlindb_azurelinux3"
+          ],
+          "aliases": [
+            "db",
+            "downstream"
+          ]
+        }
+      }
+    },
+    "source": {
+      "agents": {
+        "main": {
+          "source": {
+            "localFolder": ".",
+            "respository": "",
+            "project": "Minimal.csproj"
+          }
+        }
+      }
+    }
+  },
+  "variables": {
+    "serverPort": 5000,
+    "benchmarksCommit": "main"
+  },
+  "jobs": {
+    "minimal": {
+      "source": {
+        "repository": "https://github.com/aspnet/benchmarks.git",
+        "branchOrCommit": "{{benchmarksCommit}}",
+        "project": "src/BenchmarksApps/TechEmpower/Minimal/Minimal.csproj"
+      },
+      "readyStateText": "Application started.",
+      "arguments": "--urls {{serverScheme}}://{{serverAddress}}:{{serverPort}}",
+      "variables": {
+        "serverScheme": "http"
+      },
+      "environmentVariables": {
+        "connectionString": "Server={{databaseServer}};Database=hello_world;User Id=benchmarkdbuser;Password=benchmarkdbpass;Maximum Pool Size=256;NoResetOnClose=true;Enlist=false;Max Auto Prepare=4"
+      }
+    },
+    "postgresql": {
+      "source": {
+        "repository": "https://github.com/TechEmpower/FrameworkBenchmarks.git",
+        "branchOrCommit": "master",
+        "dockerFile": "toolset/databases/postgres/postgres.dockerfile",
+        "dockerImageName": "postgres_te",
+        "dockerContextDirectory": "toolset/databases/postgres"
+      },
+      "readyStateText": "ready to accept connections",
+      "noClean": true
+    }
+  },
+  "scenarios": {
+    "plaintext": {
+      "application": {
+        "job": "minimal"
+      },
+      "load": {
+        "job": "wrk",
+        "variables": {
+          "presetHeaders": "plaintext",
+          "path": "/plaintext",
+          "pipeline": 16
+        }
+      }
+    },
+    "plaintext_result": {
+      "application": {
+        "job": "minimal"
+      },
+      "load": {
+        "job": "wrk",
+        "variables": {
+          "presetHeaders": "plaintext",
+          "path": "/plaintext/result",
+          "pipeline": 16
+        }
+      }
+    },
+    "json": {
+      "application": {
+        "job": "minimal"
+      },
+      "load": {
+        "job": "wrk",
+        "variables": {
+          "presetHeaders": "json",
+          "path": "/json"
+        }
+      }
+    },
+    "json_result": {
+      "application": {
+        "job": "minimal"
+      },
+      "load": {
+        "job": "wrk",
+        "variables": {
+          "presetHeaders": "json",
+          "path": "/json/result"
+        }
+      }
+    },
+    "fortunes": {
+      "db": {
+        "job": "postgresql"
+      },
+      "application": {
+        "job": "minimal"
+      },
+      "load": {
+        "job": "wrk",
+        "variables": {
+          "presetHeaders": "html",
+          "path": "/fortunes"
+        }
+      }
+    },
+    "fortunes_result": {
+      "db": {
+        "job": "postgresql"
+      },
+      "application": {
+        "job": "minimal"
+      },
+      "load": {
+        "job": "wrk",
+        "variables": {
+          "presetHeaders": "html",
+          "path": "/fortunes/result"
+        }
+      }
+    },
+    "single_query": {
+      "db": {
+        "job": "postgresql"
+      },
+      "application": {
+        "job": "minimal"
+      },
+      "load": {
+        "job": "wrk",
+        "variables": {
+          "presetHeaders": "json",
+          "path": "/db",
+          "connections": 512
+        }
+      }
+    },
+    "single_query_result": {
+      "db": {
+        "job": "postgresql"
+      },
+      "application": {
+        "job": "minimal"
+      },
+      "load": {
+        "job": "wrk",
+        "variables": {
+          "presetHeaders": "json",
+          "path": "/db/result",
+          "connections": 512
+        }
+      }
+    },
+    "multiple_queries": {
+      "db": {
+        "job": "postgresql"
+      },
+      "application": {
+        "job": "minimal"
+      },
+      "load": {
+        "job": "wrk",
+        "variables": {
+          "presetHeaders": "json",
+          "path": "/queries/20",
+          "connections": 512
+        }
+      }
+    },
+    "multiple_queries_result": {
+      "db": {
+        "job": "postgresql"
+      },
+      "application": {
+        "job": "minimal"
+      },
+      "load": {
+        "job": "wrk",
+        "variables": {
+          "presetHeaders": "json",
+          "path": "/queries/20/result",
+          "connections": 512
+        }
+      }
+    },
+    "updates": {
+      "db": {
+        "job": "postgresql"
+      },
+      "application": {
+        "job": "minimal"
+      },
+      "load": {
+        "job": "wrk",
+        "variables": {
+          "presetHeaders": "json",
+          "path": "/updates/20",
+          "connections": 512
+        }
+      }
+    },
+    "updates_result": {
+      "db": {
+        "job": "postgresql"
+      },
+      "application": {
+        "job": "minimal"
+      },
+      "load": {
+        "job": "wrk",
+        "variables": {
+          "presetHeaders": "json",
+          "path": "/updates/20/result",
+          "connections": 512
+        }
+      }
+    }
+  }
+}
