@@ -86,7 +86,9 @@ rejection, fortunes, single query, multiple queries, updates, and caching.
 `testName` remains the individual PerfLab `Test.Name`; `family` becomes
 `Run.Name`.
 
-For Trend jobs, the generator also overrides the shared Crank config/profile
-variables with raw GitHub URLs pinned to `$(Build.SourceVersion)`. The
-Benchmarks commit recorded in PerfLab therefore matches the configuration and
-scenario sources that Crank actually consumed.
+For Trend jobs, the source configs define a raw GitHub base URL pinned to
+`$(Build.SourceVersion)`. The generator passes that base explicitly and emits
+the pinned CI profile URL; the Trend templates build every Benchmarks-owned
+scenario/profile URL from it instead of expanding shared `*Jobs`,
+`$(ciProfile)`, or `$(azureProfile)` variables. The Benchmarks commit recorded
+in PerfLab therefore matches the sources that Crank actually consumed.

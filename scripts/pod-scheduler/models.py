@@ -192,6 +192,7 @@ class PipelineSettings:
     pool: str = DEFAULT_PIPELINE_POOL
     service_bus_connection: str = DEFAULT_PIPELINE_CONNECTION
     service_bus_namespace: str = DEFAULT_PIPELINE_NAMESPACE
+    trend_benchmarks_raw_base_url: str = ""
 
 
 @dataclass

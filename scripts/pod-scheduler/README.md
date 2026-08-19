@@ -73,7 +73,8 @@ python -m unittest discover tests
         "pipeline": {
             "pool": "server",
             "service_bus_connection": "ASPNET Benchmarks Service Bus",
-            "service_bus_namespace": "aspnetbenchmarks"
+            "service_bus_namespace": "aspnetbenchmarks",
+            "trend_benchmarks_raw_base_url": "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)"
         },
         "trend_lane_registry": "trend-perflab-lanes.json"
     },
@@ -97,7 +98,9 @@ python -m unittest discover tests
 }
 ```
 
-The `pipeline` block is optional; defaults match the legacy hardcoded values.
+The `pipeline` block is optional for non-Trend scenarios; its
+`trend_benchmarks_raw_base_url` field is required for Trend and must use
+`$(Build.SourceVersion)`, never `/main`.
 `trend_lane_registry` is required when a config schedules either Trend
 template. It maps pod names to stable PerfLab lane names, canonical PerfLab
 queues, OS/architecture/locale, core count, and hardware identity. These

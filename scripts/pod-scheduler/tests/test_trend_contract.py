@@ -28,11 +28,29 @@ _ROUTING_QUEUES = {
     "cobalthosted",
     "cobalthosted_azurelinux3",
 }
+_PINNED_RAW_BASE_URL = (
+    "https://raw.githubusercontent.com/aspnet/Benchmarks/"
+    "$(Build.SourceVersion)"
+)
 
 
 def _read(name):
     with open(os.path.join(_BUILD, name), encoding="utf-8-sig") as file:
         return file.read()
+
+
+_BENCHMARKS_MAIN_MACROS = {
+    name
+    for name, value in re.findall(
+        r"^- name: ([A-Za-z0-9]+)\n  value: (.+)$",
+        _read("job-variables.yml"),
+        re.MULTILINE,
+    )
+    if "raw.githubusercontent.com/aspnet/Benchmarks/main" in value
+}
+_BENCHMARKS_MACRO_RE = re.compile(
+    r"\$\((?:" + "|".join(sorted(_BENCHMARKS_MAIN_MACROS)) + r")\)"
+)
 
 
 def _scenarios(template):
@@ -83,6 +101,37 @@ def _expected_family(test_name):
     if test_name.startswith("Caching"):
         return "aspnet-caching"
     raise AssertionError(f"No expected family rule for {test_name}")
+
+
+def _payload(template):
+    text = _read(template)
+    message_body = text[text.index("        {\n"):]
+    return json.loads(textwrap.dedent(message_body))
+
+
+def _trend_calls():
+    pattern = re.compile(
+        r"  - template: "
+        r"(?P<template>trend(?:-database)?-scenarios\.yml)\n"
+        r"    parameters:\n"
+        r"(?P<parameters>(?:      .+\n)+)"
+    )
+    for pipeline in _PIPELINES:
+        text = _read(pipeline)
+        for match in pattern.finditer(text):
+            job_start = text.rfind("\n- job:", 0, match.start())
+            yield {
+                "pipeline": pipeline,
+                "template": match.group("template"),
+                "job_prefix": text[job_start:match.start()],
+                "parameters": dict(
+                    re.findall(
+                        r"^      ([A-Za-z0-9]+):\s+\"?([^\"\n]+)\"?$",
+                        match.group("parameters"),
+                        re.MULTILINE,
+                    )
+                ),
+            }
 
 
 class TestTrendTemplateContract(unittest.TestCase):
@@ -141,6 +190,7 @@ class TestTrendTemplateContract(unittest.TestCase):
                     "raw.githubusercontent.com/aspnet/Benchmarks/main",
                     text,
                 )
+                self.assertIsNone(_BENCHMARKS_MACRO_RE.search(text))
                 self.assertIn("--json crank-results.json", text)
                 self.assertIn("--no-measurements", text)
                 self.assertIn("--table TrendBenchmarks", text)
@@ -172,8 +222,7 @@ class TestTrendTemplateContract(unittest.TestCase):
                     '"${{ parameters.perfLabResultsQueue }}"',
                     text,
                 )
-                message_body = text[text.index("        {\n"):]
-                payload = json.loads(textwrap.dedent(message_body))
+                payload = _payload(template)
                 self.assertEqual("crank", payload["name"])
                 self.assertEqual(
                     "Crank PerfLab export",
@@ -253,73 +302,106 @@ class TestTrendTemplateContract(unittest.TestCase):
         )
 
         call_count = 0
-        for pipeline in _PIPELINES:
-            text = _read(pipeline)
-            pattern = re.compile(
-                r"  - template: trend(?:-database)?-scenarios\.yml\n"
-                r"    parameters:\n"
-                r"(?P<parameters>(?:      .+\n)+)"
+        for call in _trend_calls():
+            call_count += 1
+            parameters = call["parameters"]
+            job_prefix = call["job_prefix"]
+            self.assertEqual(
+                _PINNED_RAW_BASE_URL,
+                parameters["benchmarksRawBaseUrl"],
             )
-            for match in pattern.finditer(text):
-                call_count += 1
-                job_start = text.rfind("\n- job:", 0, match.start())
-                job_prefix = text[job_start:match.start()]
-                for variable in [
-                    "ciProfile",
-                    "azureProfile",
-                    "platformJobs",
-                    "plaintextJobs",
-                    "databaseJobs",
-                    "jsonJobs",
-                    "minimalJobs",
-                ]:
-                    self.assertIn(
-                        f'    {variable}: "--config '
-                        "https://raw.githubusercontent.com/aspnet/Benchmarks/"
-                        "$(Build.SourceVersion)/",
-                        job_prefix,
-                    )
-                parameters = dict(
-                    re.findall(
-                        r"^      ([A-Za-z0-9]+):\s+\"?([^\"\n]+)\"?$",
-                        match.group("parameters"),
-                        re.MULTILINE,
-                    )
-                )
-                routing_queue = parameters["serviceBusQueueName"]
-                perf_queue = parameters["perfLabQueue"]
-                display_name = re.search(
-                    r"displayName: \d+- Trends(?: Database)? ([^\n]+)",
-                    job_prefix,
-                )
-                self.assertIsNotNone(display_name)
-                pod_name = display_name.group(1)
-                lane = registry[pod_name]
-                self.assertIn(routing_queue, _ROUTING_QUEUES)
-                self.assertNotIn(perf_queue, _ROUTING_QUEUES)
-                self.assertNotEqual(routing_queue, perf_queue)
-                self.assertEqual(lane["queue"], perf_queue)
-                self.assertEqual(lane["name"], parameters["perfLabLaneName"])
-                self.assertEqual(lane["os"], parameters["perfLabOs"])
-                self.assertEqual(
-                    lane["architecture"],
-                    parameters["perfLabArchitecture"],
-                )
-                self.assertEqual(
-                    str(lane["cores"]),
-                    parameters["perfLabCores"],
-                )
-                for required in [
-                    "perfLabLaneName",
-                    "perfLabOs",
-                    "perfLabArchitecture",
-                    "perfLabLocale",
-                    "perfLabCores",
-                    "perfLabHardware",
-                    "perfLabTopology",
-                ]:
-                    self.assertIn(required, parameters)
+            self.assertIn(
+                f"--config {_PINNED_RAW_BASE_URL}/build/ci.profile.yml",
+                parameters["arguments"],
+            )
+            self.assertIsNone(
+                _BENCHMARKS_MACRO_RE.search(parameters["arguments"])
+            )
+            routing_queue = parameters["serviceBusQueueName"]
+            perf_queue = parameters["perfLabQueue"]
+            display_name = re.search(
+                r"displayName: \d+- Trends(?: Database)? ([^\n]+)",
+                job_prefix,
+            )
+            self.assertIsNotNone(display_name)
+            pod_name = display_name.group(1)
+            lane = registry[pod_name]
+            self.assertIn(routing_queue, _ROUTING_QUEUES)
+            self.assertNotIn(perf_queue, _ROUTING_QUEUES)
+            self.assertNotEqual(routing_queue, perf_queue)
+            self.assertEqual(lane["queue"], perf_queue)
+            self.assertEqual(lane["name"], parameters["perfLabLaneName"])
+            self.assertEqual(lane["os"], parameters["perfLabOs"])
+            self.assertEqual(
+                lane["architecture"],
+                parameters["perfLabArchitecture"],
+            )
+            self.assertEqual(
+                str(lane["cores"]),
+                parameters["perfLabCores"],
+            )
+            for required in [
+                "perfLabLaneName",
+                "perfLabOs",
+                "perfLabArchitecture",
+                "perfLabLocale",
+                "perfLabCores",
+                "perfLabHardware",
+                "perfLabTopology",
+            ]:
+                self.assertIn(required, parameters)
         self.assertGreater(call_count, 0)
+
+    def test_every_expanded_trend_payload_uses_pinned_benchmarks_urls(self):
+        payload_count = 0
+        for call in _trend_calls():
+            command_template = _payload(call["template"])["args"][0]
+            parameters = call["parameters"]
+            for scenario in _scenarios(call["template"]):
+                payload_count += 1
+                command = command_template
+                replacements = {
+                    "${{ s.arguments }}": scenario["arguments"],
+                    "${{ s.displayName }}": scenario["displayName"],
+                    "${{ s.testName }}": scenario["testName"],
+                    "${{ s.family }}": scenario["family"],
+                    "${{ s.categories }}": scenario["categories"],
+                    "${{ parameters.benchmarksRawBaseUrl }}": (
+                        parameters["benchmarksRawBaseUrl"]
+                    ),
+                    "${{ parameters.arguments }}": parameters["arguments"],
+                }
+                for token, value in replacements.items():
+                    command = command.replace(token, value)
+                command = command.replace(
+                    "${{ parameters.benchmarksRawBaseUrl }}",
+                    parameters["benchmarksRawBaseUrl"],
+                )
+
+                self.assertNotIn(
+                    "raw.githubusercontent.com/aspnet/Benchmarks/main",
+                    command,
+                )
+                self.assertIsNone(_BENCHMARKS_MACRO_RE.search(command))
+                benchmarks_urls = re.findall(
+                    r"https://raw\.githubusercontent\.com/"
+                    r"aspnet/Benchmarks/[^\s\"\\]+",
+                    command,
+                )
+                self.assertGreaterEqual(len(benchmarks_urls), 4)
+                self.assertTrue(
+                    all(
+                        url.startswith(_PINNED_RAW_BASE_URL + "/")
+                        for url in benchmarks_urls
+                    ),
+                    command,
+                )
+                self.assertIn(
+                    f"--property perflab.perfRepoHash="
+                    '"$(Build.SourceVersion)"',
+                    command,
+                )
+        self.assertGreater(payload_count, 0)
 
 
 if __name__ == "__main__":

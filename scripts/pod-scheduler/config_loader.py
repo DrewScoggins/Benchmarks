@@ -158,6 +158,10 @@ def load_config(path: str) -> ScheduleConfig:
             "service_bus_namespace",
             PipelineSettings.service_bus_namespace,
         ),
+        trend_benchmarks_raw_base_url=pipeline_meta.get(
+            "trend_benchmarks_raw_base_url",
+            PipelineSettings.trend_benchmarks_raw_base_url,
+        ),
     )
 
     pods: Dict[str, Pod] = {}
@@ -213,6 +217,21 @@ def load_config(path: str) -> ScheduleConfig:
     for scenario in scenarios:
         if scenario.template not in _TREND_TEMPLATES:
             continue
+        raw_base_url = pipeline.trend_benchmarks_raw_base_url
+        if not raw_base_url:
+            raise ConfigError(
+                "Trend scenarios require "
+                "metadata.pipeline.trend_benchmarks_raw_base_url"
+            )
+        if (
+            "raw.githubusercontent.com/aspnet/Benchmarks/main"
+            in raw_base_url
+            or "$(Build.SourceVersion)" not in raw_base_url
+        ):
+            raise ConfigError(
+                "Trend Benchmarks raw base URL must be pinned to "
+                "$(Build.SourceVersion)"
+            )
         for pod_name in scenario.pods:
             if pod_name in pods and pods[pod_name].perf_lab_lane is None:
                 raise ConfigError(

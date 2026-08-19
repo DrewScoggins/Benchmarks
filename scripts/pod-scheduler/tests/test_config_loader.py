@@ -39,6 +39,17 @@ def _write(tmp, payload):
     return path
 
 
+def _enable_trend(payload):
+    payload["metadata"]["trend_lane_registry"] = "lanes.json"
+    payload["metadata"]["pipeline"] = {
+        "trend_benchmarks_raw_base_url": (
+            "https://raw.githubusercontent.com/aspnet/Benchmarks/"
+            "$(Build.SourceVersion)"
+        )
+    }
+    payload["scenarios"][0]["template"] = "trend-scenarios.yml"
+
+
 class TestLoadConfig(unittest.TestCase):
     def test_happy_path(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -116,6 +127,12 @@ class TestLoadConfig(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             payload = json.loads(json.dumps(_BASE))
             payload["scenarios"][0]["template"] = "trend-scenarios.yml"
+            payload["metadata"]["pipeline"] = {
+                "trend_benchmarks_raw_base_url": (
+                    "https://raw.githubusercontent.com/aspnet/Benchmarks/"
+                    "$(Build.SourceVersion)"
+                )
+            }
             path = _write(tmp, payload)
             with self.assertRaisesRegex(ConfigError, "no entry"):
                 load_config(path)
@@ -123,8 +140,7 @@ class TestLoadConfig(unittest.TestCase):
     def test_trend_lane_registry_is_loaded(self):
         with tempfile.TemporaryDirectory() as tmp:
             payload = json.loads(json.dumps(_BASE))
-            payload["metadata"]["trend_lane_registry"] = "lanes.json"
-            payload["scenarios"][0]["template"] = "trend-scenarios.yml"
+            _enable_trend(payload)
             with open(
                 os.path.join(tmp, "lanes.json"), "w", encoding="utf-8"
             ) as f:
@@ -153,8 +169,7 @@ class TestLoadConfig(unittest.TestCase):
     def test_trend_lane_cannot_reuse_service_bus_routing_queue(self):
         with tempfile.TemporaryDirectory() as tmp:
             payload = json.loads(json.dumps(_BASE))
-            payload["metadata"]["trend_lane_registry"] = "lanes.json"
-            payload["scenarios"][0]["template"] = "trend-scenarios.yml"
+            _enable_trend(payload)
             with open(
                 os.path.join(tmp, "lanes.json"), "w", encoding="utf-8"
             ) as f:
@@ -177,6 +192,38 @@ class TestLoadConfig(unittest.TestCase):
             with self.assertRaisesRegex(
                 ConfigError,
                 "routing queues cannot be used",
+            ):
+                load_config(path)
+
+    def test_trend_raw_base_url_must_pin_build_source_version(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            payload = json.loads(json.dumps(_BASE))
+            _enable_trend(payload)
+            payload["metadata"]["pipeline"][
+                "trend_benchmarks_raw_base_url"
+            ] = "https://raw.githubusercontent.com/aspnet/Benchmarks/main"
+            with open(
+                os.path.join(tmp, "lanes.json"), "w", encoding="utf-8"
+            ) as f:
+                json.dump({
+                    "schemaVersion": 1,
+                    "lanes": {
+                        "p1": {
+                            "name": "stable-lane",
+                            "queue": "Ubuntu.2204.Amd64.Test.Perf",
+                            "os": "Ubuntu 22.04",
+                            "architecture": "x64",
+                            "locale": "en-US",
+                            "cores": 4,
+                            "hardware": "Test",
+                        }
+                    },
+                }, f)
+            path = _write(tmp, payload)
+
+            with self.assertRaisesRegex(
+                ConfigError,
+                "must be pinned",
             ):
                 load_config(path)
 

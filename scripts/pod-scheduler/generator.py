@@ -24,26 +24,6 @@ _TREND_TEMPLATES = {
     "trend-scenarios.yml",
     "trend-database-scenarios.yml",
 }
-_TREND_PINNED_VARIABLES = {
-    "ciProfile": "build/ci.profile.yml",
-    "azureProfile": "build/azure.profile.yml",
-    "platformJobs": "scenarios/platform.benchmarks.yml",
-    "plaintextJobs": "scenarios/plaintext.benchmarks.yml",
-    "databaseJobs": "scenarios/database.benchmarks.yml",
-    "jsonJobs": "scenarios/json.benchmarks.yml",
-    "antiforgeryJobs": "scenarios/antiforgery.benchmarks.yml",
-    "tlsJobs": "scenarios/tls.benchmarks.yml",
-    "rejectionJobs": "scenarios/rejection.benchmarks.yml",
-    "minimalJobs": (
-        "src/BenchmarksApps/TechEmpower/Minimal/minimal.benchmarks.yml"
-    ),
-    "blazorSsrJobs": (
-        "src/BenchmarksApps/TechEmpower/BlazorSSR/blazorssr.benchmarks.yml"
-    ),
-    "razorPagesJobs": (
-        "src/BenchmarksApps/TechEmpower/RazorPages/razorpages.benchmarks.yml"
-    ),
-}
 
 
 class GeneratorError(ValueError):
@@ -214,14 +194,6 @@ def _render_yaml(
             lines.append(f"  timeoutInMinutes: {job['timeout']}")
             lines.append(f"  dependsOn: [{depends}]")
             lines.append("  condition: succeededOrFailed()")
-            if job["template"] in _TREND_TEMPLATES:
-                lines.append("  variables:")
-                for variable, path in _TREND_PINNED_VARIABLES.items():
-                    lines.append(
-                        f'    {variable}: "--config '
-                        "https://raw.githubusercontent.com/aspnet/Benchmarks/"
-                        f'$(Build.SourceVersion)/{path}"'
-                    )
             lines.append("  steps:")
             lines.append(f"  - template: {job['template']}")
             lines.append("    parameters:")
@@ -233,11 +205,20 @@ def _render_yaml(
                 f"      serviceBusNamespace: {pipeline.service_bus_namespace}"
             )
             if job["template"] in _TREND_TEMPLATES:
+                raw_base_url = pipeline.trend_benchmarks_raw_base_url
+                if not raw_base_url:
+                    raise GeneratorError(
+                        f"Trend job {job['name']!r} has no pinned "
+                        "Benchmarks raw base URL"
+                    )
                 lane = job["perf_lab_lane"]
                 if lane is None:
                     raise GeneratorError(
                         f"Trend job {job['name']!r} has no PerfLab lane mapping"
                     )
+                lines.append(
+                    f'      benchmarksRawBaseUrl: "{raw_base_url}"'
+                )
                 lines.append(f"      perfLabLaneName: {lane['name']}")
                 lines.append(f"      perfLabQueue: {lane['queue']}")
                 lines.append(f'      perfLabOs: "{lane["os"]}"')
@@ -250,9 +231,13 @@ def _render_yaml(
                 lines.append(
                     f'      perfLabTopology: "{job["perf_lab_topology"]}"'
                 )
-            lines.append(
-                f'      arguments: "$(ciProfile) {profiles_args} "'
+            ci_profile = (
+                "--config "
+                f"{pipeline.trend_benchmarks_raw_base_url}/build/ci.profile.yml"
+                if job["template"] in _TREND_TEMPLATES
+                else "$(ciProfile)"
             )
+            lines.append(f'      arguments: "{ci_profile} {profiles_args} "')
             lines.append("")
 
         prev_group_jobs = current_jobs

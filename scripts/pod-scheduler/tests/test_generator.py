@@ -108,15 +108,31 @@ class TestTrendLaneRendering(unittest.TestCase):
             }],
         }
 
-        yaml = _render_yaml(data, PipelineSettings())
+        yaml = _render_yaml(
+            data,
+            PipelineSettings(
+                trend_benchmarks_raw_base_url=(
+                    "https://raw.githubusercontent.com/aspnet/Benchmarks/"
+                    "$(Build.SourceVersion)"
+                )
+            ),
+        )
 
         self.assertIn("serviceBusQueueName: citrine1", yaml)
         self.assertIn(
-            'ciProfile: "--config '
+            'benchmarksRawBaseUrl: "'
             "https://raw.githubusercontent.com/aspnet/Benchmarks/"
-            '$(Build.SourceVersion)/build/ci.profile.yml"',
+            '$(Build.SourceVersion)"',
             yaml,
         )
+        self.assertIn(
+            'arguments: "--config '
+            "https://raw.githubusercontent.com/aspnet/Benchmarks/"
+            "$(Build.SourceVersion)/build/ci.profile.yml "
+            '--profile gold-lin-app --profile gold-load-load "',
+            yaml,
+        )
+        self.assertNotIn("$(ciProfile)", yaml)
         self.assertIn(
             "perfLabQueue: Ubuntu.2204.Amd64.AspNetGold.Perf", yaml
         )

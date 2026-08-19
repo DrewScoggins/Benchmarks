@@ -141,6 +141,12 @@ a successful Crank run and before cleanup, Trend sends this generic payload:
 
 Only credential environment-variable names cross Service Bus. Secret values
 remain in the worker environment and are never included in the command.
+Worker deployment must configure `CRANK_VERSION`,
+`PERFLAB_UPLOAD_TENANT_ID`, `PERFLAB_UPLOAD_CLIENT_ID`,
+`PERFLAB_UPLOAD_CERTIFICATE_BASE64`, and
+`PERFLAB_UPLOAD_CERTIFICATE_PASSWORD` before enabling this post-process
+payload. Deployment configuration outside this repository is intentionally
+not implemented here.
 
 ## Deploy beside a worker
 
