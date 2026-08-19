@@ -67,6 +67,12 @@ namespace Crank.PerfLabExporter.Contracts.Policy
 
         [JsonPropertyName("excludeScenarioFamilies")]
         public List<string> ExcludeScenarioFamilies { get; set; } = [];
+
+        [JsonPropertyName("includeScenarioNames")]
+        public List<string> IncludeScenarioNames { get; set; } = [];
+
+        [JsonPropertyName("excludeScenarioNames")]
+        public List<string> ExcludeScenarioNames { get; set; } = [];
     }
 
     public sealed class UnmappedCounterPolicy

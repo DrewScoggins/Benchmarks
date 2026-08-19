@@ -10,6 +10,48 @@ namespace Crank.PerfLabExporter.Tests
 {
     public class CrankPerfLabConverterTests
     {
+        public static TheoryData<string, bool, bool, bool>
+            RequestRejectionLatencyCases =>
+            new()
+            {
+                {
+                    "RejectionEncodedUrlHttpSys",
+                    false,
+                    true,
+                    false
+                },
+                {
+                    "RejectionInvalidHeaderHttpSys",
+                    true,
+                    false,
+                    false
+                },
+                {
+                    "RejectionHostHeaderMismatchHttpSys",
+                    true,
+                    true,
+                    true
+                },
+                {
+                    "RejectionEncodedUrlKestrel",
+                    false,
+                    true,
+                    false
+                },
+                {
+                    "RejectionInvalidHeaderKestrel",
+                    true,
+                    false,
+                    false
+                },
+                {
+                    "RejectionHostHeaderMismatchKestrel",
+                    true,
+                    true,
+                    true
+                }
+            };
+
         [Fact]
         public async Task ConvertsFiveMonitoredCountersAndEveryOtherTopLevelScalar()
         {
@@ -77,24 +119,24 @@ namespace Crank.PerfLabExporter.Tests
                     diagnostic.Contains("top-level JSON kind String", StringComparison.Ordinal));
         }
 
-        [Fact]
-        public async Task RetainsLatencyMappingsForSupportedScenarioFamily()
-        {
-            var conversion = await ConvertFixtureAsync();
-            var test = Assert.Single(conversion.Report.Tests);
-
-            AssertCounter(test, "Mean latency", "ms", false, 1.25);
-            AssertCounter(test, "P99 latency", "ms", false, 3.5);
-        }
-
-        [Fact]
-        public async Task OmitsIncompatibleLatencyMappingsForRequestRejection()
+        [Theory]
+        [MemberData(nameof(RequestRejectionLatencyCases))]
+        public async Task AppliesLatencyPolicyToEveryRequestRejectionScenario(
+            string scenarioName,
+            bool emitsP99,
+            bool expectMean,
+            bool expectP99)
         {
             var execution = FixtureLoader.LoadExecution();
-            execution.JobResults.Properties["scenario"] =
-                "RejectionInvalidHeaderKestrel";
+            execution.JobResults.Properties["scenario"] = scenarioName;
+            if (!emitsP99)
+            {
+                execution.JobResults.Jobs["load"].Results.Remove(
+                    "http/latency/99");
+            }
+
             var identity = FixtureLoader.LoadIdentity();
-            identity.Scenario.Name = "RejectionInvalidHeaderKestrel";
+            identity.Scenario.Name = scenarioName;
             identity.Scenario.Family = "aspnet-request-rejection";
             var converter = new CrankPerfLabConverter(
                 new StubCommitTimeResolver(
@@ -107,16 +149,33 @@ namespace Crank.PerfLabExporter.Tests
                 CreateSource());
 
             var test = Assert.Single(conversion.Report.Tests);
+            Assert.Equal(scenarioName, test.Name);
             var defaultCounter = Assert.Single(
                 test.Counters,
                 counter => counter.DefaultCounter);
             Assert.Equal("Requests/sec", defaultCounter.Name);
-            Assert.DoesNotContain(
-                test.Counters,
-                counter => counter.Name == "Mean latency");
-            Assert.DoesNotContain(
-                test.Counters,
-                counter => counter.Name == "P99 latency");
+            if (expectMean)
+            {
+                AssertCounter(test, "Mean latency", "ms", false, 1.25);
+            }
+            else
+            {
+                Assert.DoesNotContain(
+                    test.Counters,
+                    counter => counter.Name == "Mean latency");
+            }
+
+            if (expectP99)
+            {
+                AssertCounter(test, "P99 latency", "ms", false, 3.5);
+            }
+            else
+            {
+                Assert.DoesNotContain(
+                    test.Counters,
+                    counter => counter.Name == "P99 latency");
+            }
+
             Assert.Contains(
                 test.Counters,
                 counter => counter.Name == "Startup time");
@@ -127,24 +186,28 @@ namespace Crank.PerfLabExporter.Tests
                 test.Counters,
                 counter => counter.Name ==
                     "jobs.load.results['custom/scalar']");
-            Assert.Contains(
-                conversion.Diagnostics,
+            var omittedDiagnostics = conversion.Diagnostics
+                .Where(diagnostic => diagnostic.Contains(
+                    "Mapped numeric Crank result omitted",
+                    StringComparison.Ordinal))
+                .ToList();
+            Assert.Equal(
+                (expectMean ? 0 : 1) +
+                (emitsP99 && !expectP99 ? 1 : 0),
+                omittedDiagnostics.Count);
+            Assert.All(
+                omittedDiagnostics,
                 diagnostic =>
-                    diagnostic.Contains(
-                        "jobs.load.results['http/latency/mean']",
-                        StringComparison.Ordinal) &&
-                    diagnostic.Contains(
+                {
+                    Assert.Contains(
+                        scenarioName,
+                        diagnostic,
+                        StringComparison.Ordinal);
+                    Assert.Contains(
                         "aspnet-request-rejection",
-                        StringComparison.Ordinal));
-            Assert.Contains(
-                conversion.Diagnostics,
-                diagnostic =>
-                    diagnostic.Contains(
-                        "jobs.load.results['http/latency/99']",
-                        StringComparison.Ordinal) &&
-                    diagnostic.Contains(
-                        "aspnet-request-rejection",
-                        StringComparison.Ordinal));
+                        diagnostic,
+                        StringComparison.Ordinal);
+                });
         }
 
         [Fact]

@@ -19,8 +19,9 @@
       "defaultCounter": false,
       "regressionThreshold": 0.05,
       "applicability": {
-        "excludeScenarioFamilies": [
-          "aspnet-request-rejection"
+        "excludeScenarioNames": [
+          "RejectionInvalidHeaderHttpSys",
+          "RejectionInvalidHeaderKestrel"
         ]
       }
     },
@@ -33,8 +34,9 @@
       "defaultCounter": false,
       "regressionThreshold": 0.05,
       "applicability": {
-        "excludeScenarioFamilies": [
-          "aspnet-request-rejection"
+        "excludeScenarioNames": [
+          "RejectionInvalidHeaderHttpSys",
+          "RejectionInvalidHeaderKestrel"
         ]
       }
     },

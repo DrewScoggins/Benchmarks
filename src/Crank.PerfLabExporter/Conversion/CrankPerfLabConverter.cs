@@ -106,11 +106,15 @@ namespace Crank.PerfLabExporter.Conversion
             {
                 if (mappingLookup.TryGetValue(scalar.MappingPath, out var mapping))
                 {
-                    if (!IsApplicable(mapping, identity.Scenario.Family))
+                    if (!IsApplicable(
+                            mapping,
+                            identity.Scenario.Family,
+                            identity.Scenario.Name))
                     {
                         diagnostics.Add(
                             $"Mapped numeric Crank result omitted for scenario " +
-                            $"family '{identity.Scenario.Family}': " +
+                            $"'{identity.Scenario.Name}' in family " +
+                            $"'{identity.Scenario.Family}': " +
                             $"{scalar.SourcePath}");
                         continue;
                     }
@@ -210,26 +214,40 @@ namespace Crank.PerfLabExporter.Conversion
 
         private static bool IsApplicable(
             CounterMapping mapping,
-            string scenarioFamily)
+            string scenarioFamily,
+            string scenarioName)
         {
             if (mapping.Applicability is null)
             {
                 return true;
             }
 
-            var included = mapping.Applicability.IncludeScenarioFamilies ?? [];
-            var excluded = mapping.Applicability.ExcludeScenarioFamilies ?? [];
-            if (included.Count > 0 &&
-                !included.Contains(
+            if (!IsApplicableValue(
+                    mapping.Applicability.IncludeScenarioFamilies,
+                    mapping.Applicability.ExcludeScenarioFamilies,
                     scenarioFamily,
                     StringComparer.OrdinalIgnoreCase))
             {
                 return false;
             }
 
-            return !excluded.Contains(
-                scenarioFamily,
-                StringComparer.OrdinalIgnoreCase);
+            return IsApplicableValue(
+                mapping.Applicability.IncludeScenarioNames,
+                mapping.Applicability.ExcludeScenarioNames,
+                scenarioName,
+                StringComparer.Ordinal);
+        }
+
+        private static bool IsApplicableValue(
+            IReadOnlyCollection<string>? included,
+            IReadOnlyCollection<string>? excluded,
+            string value,
+            StringComparer comparer)
+        {
+            included ??= [];
+            excluded ??= [];
+            return (included.Count == 0 || included.Contains(value, comparer)) &&
+                !excluded.Contains(value, comparer);
         }
 
         private static void ValidateCrankProperties(

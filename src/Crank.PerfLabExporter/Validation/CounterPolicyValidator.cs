@@ -126,71 +126,124 @@ namespace Crank.PerfLabExporter.Validation
                 return;
             }
 
-            var included = applicability.IncludeScenarioFamilies;
-            var excluded = applicability.ExcludeScenarioFamilies;
-            ValidateFamilyList(included, $"{path}.includeScenarioFamilies", errors);
-            ValidateFamilyList(excluded, $"{path}.excludeScenarioFamilies", errors);
+            var includedFamilies = applicability.IncludeScenarioFamilies;
+            var excludedFamilies = applicability.ExcludeScenarioFamilies;
+            var includedNames = applicability.IncludeScenarioNames;
+            var excludedNames = applicability.ExcludeScenarioNames;
+            ValidateApplicabilityList(
+                includedFamilies,
+                $"{path}.includeScenarioFamilies",
+                "scenario family",
+                StringComparer.OrdinalIgnoreCase,
+                errors);
+            ValidateApplicabilityList(
+                excludedFamilies,
+                $"{path}.excludeScenarioFamilies",
+                "scenario family",
+                StringComparer.OrdinalIgnoreCase,
+                errors);
+            ValidateApplicabilityList(
+                includedNames,
+                $"{path}.includeScenarioNames",
+                "scenario name",
+                StringComparer.Ordinal,
+                errors);
+            ValidateApplicabilityList(
+                excludedNames,
+                $"{path}.excludeScenarioNames",
+                "scenario name",
+                StringComparer.Ordinal,
+                errors);
 
-            if ((included?.Count ?? 0) == 0 && (excluded?.Count ?? 0) == 0)
+            if ((includedFamilies?.Count ?? 0) == 0 &&
+                (excludedFamilies?.Count ?? 0) == 0 &&
+                (includedNames?.Count ?? 0) == 0 &&
+                (excludedNames?.Count ?? 0) == 0)
             {
-                errors.Add(new(path, "Applicability must include or exclude at least one scenario family."));
+                errors.Add(new(path, "Applicability must include or exclude at least one scenario family or name."));
             }
 
             if (defaultCounter)
             {
-                errors.Add(new(path, "The default mapping must apply to every scenario family."));
+                errors.Add(new(path, "The default mapping must apply to every scenario."));
             }
 
+            ValidateApplicabilityOverlap(
+                includedFamilies,
+                excludedFamilies,
+                path,
+                "Scenario families",
+                StringComparer.OrdinalIgnoreCase,
+                errors);
+            ValidateApplicabilityOverlap(
+                includedNames,
+                excludedNames,
+                path,
+                "Scenario names",
+                StringComparer.Ordinal,
+                errors);
+        }
+
+        private static void ValidateApplicabilityList(
+            IReadOnlyList<string>? values,
+            string path,
+            string description,
+            StringComparer comparer,
+            List<ContractValidationError> errors)
+        {
+            if (values is null)
+            {
+                errors.Add(new(path, $"The {description} list must be an array."));
+                return;
+            }
+
+            for (var index = 0; index < values.Count; index++)
+            {
+                var value = values[index];
+                if (string.IsNullOrWhiteSpace(value) ||
+                    !string.Equals(value, value.Trim(), StringComparison.Ordinal))
+                {
+                    errors.Add(new($"{path}[{index}]", $"A non-empty, trimmed {description} is required."));
+                }
+            }
+
+            var duplicates = values
+                .Where(value => !string.IsNullOrWhiteSpace(value))
+                .GroupBy(value => value, comparer)
+                .Where(group => group.Count() > 1)
+                .Select(group => group.Key)
+                .OrderBy(value => value, comparer);
+            foreach (var duplicate in duplicates)
+            {
+                errors.Add(new(path, $"{description} '{duplicate}' is duplicated."));
+            }
+        }
+
+        private static void ValidateApplicabilityOverlap(
+            IReadOnlyList<string>? included,
+            IReadOnlyList<string>? excluded,
+            string path,
+            string description,
+            StringComparer comparer,
+            List<ContractValidationError> errors)
+        {
             if (included is null || excluded is null)
             {
                 return;
             }
 
             var overlap = included
-                .Where(family => !string.IsNullOrWhiteSpace(family))
+                .Where(value => !string.IsNullOrWhiteSpace(value))
                 .Intersect(
-                    excluded.Where(family => !string.IsNullOrWhiteSpace(family)),
-                    StringComparer.OrdinalIgnoreCase)
-                .OrderBy(family => family, StringComparer.OrdinalIgnoreCase)
+                    excluded.Where(value => !string.IsNullOrWhiteSpace(value)),
+                    comparer)
+                .OrderBy(value => value, comparer)
                 .ToList();
             if (overlap.Count > 0)
             {
                 errors.Add(new(
                     path,
-                    $"Scenario families cannot be both included and excluded: {string.Join(", ", overlap)}."));
-            }
-        }
-
-        private static void ValidateFamilyList(
-            IReadOnlyList<string>? families,
-            string path,
-            List<ContractValidationError> errors)
-        {
-            if (families is null)
-            {
-                errors.Add(new(path, "Scenario families must be an array."));
-                return;
-            }
-
-            for (var index = 0; index < families.Count; index++)
-            {
-                var family = families[index];
-                if (string.IsNullOrWhiteSpace(family) ||
-                    !string.Equals(family, family.Trim(), StringComparison.Ordinal))
-                {
-                    errors.Add(new($"{path}[{index}]", "A non-empty, trimmed scenario family is required."));
-                }
-            }
-
-            var duplicates = families
-                .Where(family => !string.IsNullOrWhiteSpace(family))
-                .GroupBy(family => family, StringComparer.OrdinalIgnoreCase)
-                .Where(group => group.Count() > 1)
-                .Select(group => group.Key)
-                .OrderBy(family => family, StringComparer.OrdinalIgnoreCase);
-            foreach (var duplicate in duplicates)
-            {
-                errors.Add(new(path, $"Scenario family '{duplicate}' is duplicated."));
+                    $"{description} cannot be both included and excluded: {string.Join(", ", overlap)}."));
             }
         }
 

@@ -8,12 +8,13 @@ The default Trend counter policy is
 [`build/crank-perflab-counter-policy.json`](../../build/crank-perflab-counter-policy.json).
 It maps requests/sec, mean latency, P99 latency, startup time, and published
 size. Published size is normalized from Crank KB to bytes. Mappings can include
-or exclude scenario families; the default policy omits incompatible mean and
-P99 latency values for `aspnet-request-rejection`. Requests/sec remains the
-default counter, and every other finite numeric scalar is retained with its
-fully qualified source path, `value` unit, unknown direction, and
-non-top/non-default roles. Object and array payloads (including raw
-distributions and histograms) are skipped with diagnostics and are never
+or exclude scenario families and exact scenario names; the default policy
+omits incompatible mean and P99 latency values only for
+`RejectionInvalidHeaderHttpSys` and `RejectionInvalidHeaderKestrel`.
+Requests/sec remains the default counter, and every other finite numeric scalar
+is retained with its fully qualified source path, `value` unit, unknown
+direction, and non-top/non-default roles. Object and array payloads (including
+raw distributions and histograms) are skipped with diagnostics and are never
 flattened into counters or samples. Top-level non-finite numeric
 representations fail conversion.
 

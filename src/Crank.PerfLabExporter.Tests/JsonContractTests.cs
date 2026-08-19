@@ -157,7 +157,7 @@ namespace Crank.PerfLabExporter.Tests
         }
 
         [Fact]
-        public void RoundTripsCounterFamilyApplicability()
+        public void RoundTripsCounterApplicability()
         {
             var policy = ContractTestData.CreateValidPolicy();
 
@@ -167,12 +167,44 @@ namespace Crank.PerfLabExporter.Tests
                 SerializerOptions);
 
             Assert.NotNull(roundTrip);
-            Assert.Contains(
-                "aspnet-request-rejection",
+            Assert.Equal(
+                [
+                    "RejectionInvalidHeaderHttpSys",
+                    "RejectionInvalidHeaderKestrel"
+                ],
                 roundTrip.Mappings[1]
                     .Applicability!
-                    .ExcludeScenarioFamilies);
+                    .ExcludeScenarioNames);
             Assert.Empty(CounterPolicyValidator.Validate(roundTrip));
+        }
+
+        [Fact]
+        public void DefaultPolicyExcludesOnlyPipeliningRejectionScenarios()
+        {
+            var policy = FixtureLoader.LoadPolicy();
+            var latencyMappings = policy.Mappings
+                .Where(mapping =>
+                    mapping.Path?.Result is "http/latency/mean" or
+                        "http/latency/99")
+                .ToList();
+
+            Assert.Equal(2, latencyMappings.Count);
+            foreach (var mapping in latencyMappings)
+            {
+                var applicability = Assert.IsType<CounterApplicability>(
+                    mapping.Applicability);
+                Assert.Empty(applicability.IncludeScenarioFamilies);
+                Assert.Empty(applicability.ExcludeScenarioFamilies);
+                Assert.Empty(applicability.IncludeScenarioNames);
+                Assert.Equal(
+                    [
+                        "RejectionInvalidHeaderHttpSys",
+                        "RejectionInvalidHeaderKestrel"
+                    ],
+                    applicability.ExcludeScenarioNames);
+            }
+
+            Assert.Empty(CounterPolicyValidator.Validate(policy));
         }
 
         [Fact]

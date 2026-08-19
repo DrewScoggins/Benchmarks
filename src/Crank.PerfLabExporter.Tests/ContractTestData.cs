@@ -95,9 +95,10 @@ namespace Crank.PerfLabExporter.Tests
                         Normalization = new CounterNormalization { Scale = 0.001 },
                         Applicability = new CounterApplicability
                         {
-                            ExcludeScenarioFamilies =
+                            ExcludeScenarioNames =
                             [
-                                "aspnet-request-rejection"
+                                "RejectionInvalidHeaderHttpSys",
+                                "RejectionInvalidHeaderKestrel"
                             ]
                         }
                     }

@@ -172,12 +172,48 @@ namespace Crank.PerfLabExporter.Tests
         }
 
         [Fact]
-        public void RequiresDefaultMappingToApplyToEveryFamily()
+        public void RejectsInvalidScenarioNameApplicability()
+        {
+            var policy = ContractTestData.CreateValidPolicy();
+            policy.Mappings[1].Applicability = new CounterApplicability
+            {
+                IncludeScenarioNames =
+                [
+                    "ScenarioA",
+                    "ScenarioA"
+                ],
+                ExcludeScenarioNames =
+                [
+                    "ScenarioA",
+                    " "
+                ]
+            };
+
+            var errors = CounterPolicyValidator.Validate(policy);
+
+            Assert.Contains(
+                errors,
+                error => error.Path ==
+                    "$.mappings[1].applicability.includeScenarioNames");
+            Assert.Contains(
+                errors,
+                error => error.Path ==
+                    "$.mappings[1].applicability.excludeScenarioNames[1]");
+            Assert.Contains(
+                errors,
+                error => error.Path == "$.mappings[1].applicability" &&
+                    error.Message.Contains(
+                        "Scenario names cannot be both included and excluded",
+                        StringComparison.Ordinal));
+        }
+
+        [Fact]
+        public void RequiresDefaultMappingToApplyToEveryScenario()
         {
             var policy = ContractTestData.CreateValidPolicy();
             policy.Mappings[0].Applicability = new CounterApplicability
             {
-                ExcludeScenarioFamilies = ["aspnet-request-rejection"]
+                ExcludeScenarioNames = ["RejectionInvalidHeaderKestrel"]
             };
 
             var errors = CounterPolicyValidator.Validate(policy);
