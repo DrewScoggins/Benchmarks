@@ -11,14 +11,14 @@ namespace Crank.PerfLabExporter.Tests
     public class CrankPerfLabConverterTests
     {
         [Fact]
-        public async Task ConvertsFiveMonitoredCountersAndEveryOtherScalar()
+        public async Task ConvertsFiveMonitoredCountersAndEveryOtherTopLevelScalar()
         {
             var conversion = await ConvertFixtureAsync();
             var report = conversion.Report;
 
             var test = Assert.Single(report.Tests);
             Assert.Equal("Plaintext", test.Name);
-            Assert.Equal(9, test.Counters.Count);
+            Assert.Equal(7, test.Counters.Count);
             Assert.Equal(5, test.Counters.Count(counter => counter.TopCounter));
             var defaultCounter = Assert.Single(test.Counters, counter => counter.DefaultCounter);
             Assert.Equal("Requests/sec", defaultCounter.Name);
@@ -37,12 +37,12 @@ namespace Crank.PerfLabExporter.Tests
             Assert.Null(unmapped.HigherIsBetter);
             Assert.Equal("value", unmapped.MetricName);
             Assert.Equal(12.75, Assert.Single(unmapped.Results!));
-            Assert.Contains(
+            Assert.DoesNotContain(
                 test.Counters,
-                counter => counter.Name == "jobs.application.results['custom/nested']['count']");
-            Assert.Contains(
+                counter => counter.Name.Contains("custom/nested", StringComparison.Ordinal));
+            Assert.DoesNotContain(
                 test.Counters,
-                counter => counter.Name == "jobs.application.results['custom/nested']['ratio']");
+                counter => counter.Name.Contains("custom/raw-array", StringComparison.Ordinal));
 
             Assert.Equal("single-aggregate-from-crank-json", test.AdditionalData["crank.sampleModel"]);
             Assert.Equal("1", test.AdditionalData["crank.independentSampleCount"]);
@@ -51,7 +51,30 @@ namespace Crank.PerfLabExporter.Tests
             Assert.DoesNotContain(
                 test.Counters,
                 counter => counter.Name.Contains("measurements", StringComparison.Ordinal));
-            Assert.Equal(4, conversion.Diagnostics.Count);
+            Assert.Equal(5, conversion.Diagnostics.Count);
+            Assert.Single(
+                conversion.Diagnostics,
+                diagnostic => diagnostic.Contains(
+                    "jobs.application.results['custom/nested']",
+                    StringComparison.Ordinal));
+            Assert.Single(
+                conversion.Diagnostics,
+                diagnostic => diagnostic.Contains(
+                    "jobs.application.results['custom/raw-array']",
+                    StringComparison.Ordinal));
+            Assert.Contains(
+                conversion.Diagnostics,
+                diagnostic => diagnostic.Contains("top-level JSON kind Object", StringComparison.Ordinal));
+            Assert.Contains(
+                conversion.Diagnostics,
+                diagnostic => diagnostic.Contains("top-level JSON kind Array", StringComparison.Ordinal));
+            Assert.Contains(
+                conversion.Diagnostics,
+                diagnostic =>
+                    diagnostic.Contains(
+                        "jobs.application.results['description']",
+                        StringComparison.Ordinal) &&
+                    diagnostic.Contains("top-level JSON kind String", StringComparison.Ordinal));
         }
 
         [Fact]
@@ -186,6 +209,33 @@ namespace Crank.PerfLabExporter.Tests
                 "jobs.load.results['custom/non-finite']",
                 exception.Message,
                 StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public async Task RejectsReportWithNoFiniteTopLevelScalar()
+        {
+            var execution = FixtureLoader.LoadExecution();
+            using var structured = JsonDocument.Parse("{\"nested\":123}");
+            foreach (var job in execution.JobResults.Jobs.Values)
+            {
+                foreach (var resultName in job.Results.Keys.ToList())
+                {
+                    job.Results[resultName] = structured.RootElement.Clone();
+                }
+            }
+
+            var converter = new CrankPerfLabConverter(
+                new StubCommitTimeResolver(DateTimeOffset.UtcNow));
+
+            var exception = await Assert.ThrowsAsync<CrankConversionException>(() =>
+                converter.ConvertAsync(
+                    execution,
+                    FixtureLoader.LoadPolicy(),
+                    FixtureLoader.LoadIdentity(),
+                    CreateSource()));
+
+            Assert.Contains("does not contain any finite top-level numeric result scalars", exception.Message, StringComparison.Ordinal);
+            Assert.Contains("top-level JSON kind Object", exception.Message, StringComparison.Ordinal);
         }
 
         [Fact]

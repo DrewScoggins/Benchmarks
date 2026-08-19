@@ -8,9 +8,12 @@ The default Trend counter policy is
 [`build/crank-perflab-counter-policy.json`](../../build/crank-perflab-counter-policy.json).
 It maps requests/sec, mean latency, P99 latency, startup time, and published
 size. Published size is normalized from Crank KB to bytes. Every other finite
-numeric scalar below `jobs.<job>.results` is retained with its fully qualified
-source path, `value` unit, unknown direction, and non-top/non-default roles.
-Non-finite scalars fail conversion.
+numeric result entry whose value is itself a scalar is retained with its fully
+qualified source path, `value` unit, unknown direction, and
+non-top/non-default roles. Object and array payloads (including raw
+distributions and histograms) are skipped with diagnostics and are never
+flattened into counters or samples. Top-level non-finite numeric
+representations fail conversion.
 
 ## Convert locally
 

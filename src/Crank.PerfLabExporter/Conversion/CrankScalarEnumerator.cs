@@ -10,12 +10,16 @@ namespace Crank.PerfLabExporter.Conversion
 {
     public sealed record CrankScalar(
         string SourcePath,
-        CrankResultPath? MappingPath,
+        CrankResultPath MappingPath,
         double Value);
+
+    public sealed record CrankScalarEnumeration(
+        IReadOnlyList<CrankScalar> Scalars,
+        IReadOnlyList<string> Diagnostics);
 
     public static class CrankScalarEnumerator
     {
-        public static IReadOnlyList<CrankScalar> Enumerate(CrankExecutionResult execution)
+        public static CrankScalarEnumeration Enumerate(CrankExecutionResult execution)
         {
             if (execution.ReturnCode != 0)
             {
@@ -24,19 +28,35 @@ namespace Crank.PerfLabExporter.Conversion
             }
 
             var scalars = new List<CrankScalar>();
+            var diagnostics = new List<string>();
             var errors = new List<string>();
             foreach (var job in execution.JobResults.Jobs.OrderBy(job => job.Key, StringComparer.Ordinal))
             {
                 foreach (var result in job.Value.Results.OrderBy(result => result.Key, StringComparer.Ordinal))
                 {
                     var mappingPath = new CrankResultPath(job.Key, result.Key);
-                    EnumerateElement(
-                        result.Value,
-                        mappingPath.ToString(),
-                        mappingPath,
-                        isRoot: true,
-                        scalars,
-                        errors);
+                    var sourcePath = mappingPath.ToString();
+                    if (result.Value.ValueKind == JsonValueKind.Number)
+                    {
+                        if (!result.Value.TryGetDouble(out var value) || !double.IsFinite(value))
+                        {
+                            errors.Add($"{sourcePath}: {result.Value.GetRawText()}");
+                        }
+                        else
+                        {
+                            scalars.Add(new CrankScalar(sourcePath, mappingPath, value));
+                        }
+                    }
+                    else if (IsNonFiniteRepresentation(result.Value))
+                    {
+                        errors.Add($"{sourcePath}: {result.Value.GetString()}");
+                    }
+                    else
+                    {
+                        diagnostics.Add(
+                            $"Skipped Crank result {sourcePath}: top-level JSON kind " +
+                            $"{result.Value.ValueKind} is not a numeric scalar.");
+                    }
                 }
             }
 
@@ -48,77 +68,22 @@ namespace Crank.PerfLabExporter.Conversion
                     string.Join(Environment.NewLine, errors.Select(error => $"  {error}")));
             }
 
-            return scalars;
+            return new CrankScalarEnumeration(scalars, diagnostics);
         }
 
-        private static void EnumerateElement(
-            JsonElement element,
-            string sourcePath,
-            CrankResultPath mappingPath,
-            bool isRoot,
-            List<CrankScalar> scalars,
-            List<string> errors)
+        private static bool IsNonFiniteRepresentation(JsonElement element)
         {
-            switch (element.ValueKind)
+            if (element.ValueKind != JsonValueKind.String)
             {
-                case JsonValueKind.Number:
-                    if (!element.TryGetDouble(out var value) || !double.IsFinite(value))
-                    {
-                        errors.Add($"{sourcePath}: {element.GetRawText()}");
-                    }
-                    else
-                    {
-                        scalars.Add(new CrankScalar(sourcePath, isRoot ? mappingPath : null, value));
-                    }
-                    break;
-
-                case JsonValueKind.Object:
-                    foreach (var property in element.EnumerateObject().OrderBy(property => property.Name, StringComparer.Ordinal))
-                    {
-                        EnumerateElement(
-                            property.Value,
-                            $"{sourcePath}['{Escape(property.Name)}']",
-                            mappingPath,
-                            isRoot: false,
-                            scalars,
-                            errors);
-                    }
-                    break;
-
-                case JsonValueKind.Array:
-                    var index = 0;
-                    foreach (var item in element.EnumerateArray())
-                    {
-                        EnumerateElement(
-                            item,
-                            $"{sourcePath}[{index}]",
-                            mappingPath,
-                            isRoot: false,
-                            scalars,
-                            errors);
-                        index++;
-                    }
-                    break;
-
-                case JsonValueKind.String:
-                    var text = element.GetString();
-                    if (text is not null &&
-                        (text.Equals("NaN", StringComparison.OrdinalIgnoreCase) ||
-                         text.Equals("Infinity", StringComparison.OrdinalIgnoreCase) ||
-                         text.Equals("+Infinity", StringComparison.OrdinalIgnoreCase) ||
-                         text.Equals("-Infinity", StringComparison.OrdinalIgnoreCase)))
-                    {
-                        errors.Add($"{sourcePath}: {text}");
-                    }
-                    break;
+                return false;
             }
-        }
 
-        private static string Escape(string value)
-        {
-            return value
-                .Replace("\\", "\\\\", StringComparison.Ordinal)
-                .Replace("'", "\\'", StringComparison.Ordinal);
+            var text = element.GetString();
+            return text is not null &&
+                (text.Equals("NaN", StringComparison.OrdinalIgnoreCase) ||
+                 text.Equals("Infinity", StringComparison.OrdinalIgnoreCase) ||
+                 text.Equals("+Infinity", StringComparison.OrdinalIgnoreCase) ||
+                 text.Equals("-Infinity", StringComparison.OrdinalIgnoreCase));
         }
     }
 }

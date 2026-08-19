@@ -39,10 +39,17 @@ namespace Crank.PerfLabExporter.Conversion
             ValidateCrankProperties(execution, identity);
 
             var resolution = CrankDependencyResolver.Resolve(execution, identity);
-            var scalars = CrankScalarEnumerator.Enumerate(execution);
+            var enumeration = CrankScalarEnumerator.Enumerate(execution);
+            var scalars = enumeration.Scalars;
+            var diagnostics = enumeration.Diagnostics.ToList();
             if (scalars.Count == 0)
             {
-                throw new CrankConversionException("The Crank result does not contain any finite numeric result scalars.");
+                var diagnosticDetails = diagnostics.Count == 0
+                    ? string.Empty
+                    : Environment.NewLine + string.Join(Environment.NewLine, diagnostics.Select(diagnostic => $"  {diagnostic}"));
+                throw new CrankConversionException(
+                    "The Crank result does not contain any finite top-level numeric result scalars." +
+                    diagnosticDetails);
             }
 
             if (resolution.Runtime.CommitTimeStamp is { } dependencyTimestamp &&
@@ -69,11 +76,9 @@ namespace Crank.PerfLabExporter.Conversion
 
             var mappingLookup = policy.Mappings.ToDictionary(mapping => mapping.Path!);
             var counters = new List<(PerfLabCounter Counter, string SourcePath, bool IsMapped)>();
-            var diagnostics = new List<string>();
             foreach (var scalar in scalars)
             {
-                if (scalar.MappingPath is not null &&
-                    mappingLookup.TryGetValue(scalar.MappingPath, out var mapping))
+                if (mappingLookup.TryGetValue(scalar.MappingPath, out var mapping))
                 {
                     var normalized = Normalize(scalar.Value, mapping, scalar.SourcePath);
                     counters.Add((
