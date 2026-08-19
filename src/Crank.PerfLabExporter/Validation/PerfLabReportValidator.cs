@@ -17,6 +17,34 @@ namespace Crank.PerfLabExporter.Validation
                 return errors;
             }
 
+            AddRequired(report.Build.Repo, "$.build.repo", "The build repository is required.", errors);
+            AddRequired(report.Build.Branch, "$.build.branch", "The build branch is required.", errors);
+            AddRequired(report.Build.Architecture, "$.build.architecture", "The build architecture is required.", errors);
+            AddRequired(report.Build.Locale, "$.build.locale", "The build locale is required.", errors);
+            AddRequired(report.Build.GitHash, "$.build.gitHash", "The build commit is required.", errors);
+            AddRequired(report.Build.BuildName, "$.build.buildName", "The build name is required.", errors);
+            if (report.Build.TimeStamp == default)
+            {
+                errors.Add(new("$.build.timeStamp", "The build timestamp is required."));
+            }
+
+            AddRequired(report.Os.Name, "$.os.name", "The OS name is required.", errors);
+            AddRequired(report.Os.Architecture, "$.os.architecture", "The OS architecture is required.", errors);
+            AddRequired(report.Os.Locale, "$.os.locale", "The OS locale is required.", errors);
+            AddRequired(report.Run.Name, "$.run.name", "The scenario-family run name is required.", errors);
+            AddRequired(report.Run.Queue, "$.run.queue", "The performance lane queue is required.", errors);
+
+            if (!string.IsNullOrWhiteSpace(report.Run.CorrelationId) &&
+                (!Guid.TryParse(report.Run.CorrelationId, out var correlationId) || correlationId == Guid.Empty))
+            {
+                errors.Add(new("$.run.correlationId", "A correlation ID must be a non-empty Helix GUID."));
+            }
+
+            if (report.Tests.Count != 1)
+            {
+                errors.Add(new("$.tests", $"Exactly one test is required for a Crank scenario; found {report.Tests.Count}."));
+            }
+
             var duplicateTests = report.Tests
                 .Where(test => !string.IsNullOrWhiteSpace(test.Name))
                 .GroupBy(test => test.Name, StringComparer.Ordinal)
@@ -48,6 +76,11 @@ namespace Crank.PerfLabExporter.Validation
             if (string.IsNullOrWhiteSpace(test.Name))
             {
                 errors.Add(new($"{path}.name", "A test name is required."));
+            }
+
+            if (test.Counters.Count == 0)
+            {
+                errors.Add(new($"{path}.counters", "At least one counter is required."));
             }
 
             var defaultCount = test.Counters.Count(counter => counter.DefaultCounter);
@@ -102,6 +135,27 @@ namespace Crank.PerfLabExporter.Validation
                 errors.Add(new(
                     $"{path}.regressionThreshold",
                     $"A regression threshold must be finite, greater than zero, and no greater than {ValidationRules.MaximumRegressionThreshold}."));
+            }
+
+            if (counter.Results is null || counter.Results.Count == 0)
+            {
+                errors.Add(new($"{path}.results", "At least one independent scalar result is required."));
+            }
+            else if (counter.Results.Any(result => !double.IsFinite(result)))
+            {
+                errors.Add(new($"{path}.results", "Counter results must contain only finite numeric scalars."));
+            }
+        }
+
+        private static void AddRequired(
+            string? value,
+            string path,
+            string message,
+            List<ContractValidationError> errors)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                errors.Add(new(path, message));
             }
         }
     }

@@ -37,5 +37,16 @@ namespace Crank.PerfLabExporter.Tests
                 error.Path == "$.dependencies" &&
                 error.Message.Contains("duplicated", StringComparison.Ordinal));
         }
+
+        [Fact]
+        public void RejectsSyntheticNonGuidHelixCorrelationId()
+        {
+            var identity = ContractTestData.CreateValidIdentity();
+            identity.HelixCorrelationId = identity.AzureDevOps.BuildNumber;
+
+            var errors = ExportIdentityValidator.Validate(identity);
+
+            Assert.Contains(errors, error => error.Path == "$.helixCorrelationId");
+        }
     }
 }

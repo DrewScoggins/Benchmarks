@@ -1,0 +1,102 @@
+{
+  "returnCode": 0,
+  "jobResults": {
+    "jobs": {
+      "application": {
+        "results": {
+          "benchmarks/start-time": 125.5,
+          "benchmarks/published-size": 2048,
+          "benchmarks/cpu/steady": 42,
+          "custom/nested": {
+            "count": 7,
+            "ratio": 0.5
+          },
+          "description": "not a numeric result"
+        },
+        "metadata": [
+          {
+            "name": "benchmarks/published-size",
+            "description": "Published Size (KB)",
+            "format": "n0"
+          }
+        ],
+        "dependencies": [
+          {
+            "id": "Microsoft.AspNetCore.App",
+            "names": [
+              "Microsoft.AspNetCore.App"
+            ],
+            "repositoryUrl": "https://github.com/dotnet/aspnetcore.git",
+            "version": "10.0.0-preview.7.25380.108",
+            "commitHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          {
+            "id": "Microsoft.NETCore.App",
+            "names": [
+              "Microsoft.NETCore.App",
+              "Microsoft.NETCore.App.Runtime.linux-x64"
+            ],
+            "repositoryUrl": "https://github.com/dotnet/runtime",
+            "version": "10.0.0-preview.7.25380.103",
+            "commitHash": "1111111111111111111111111111111111111111"
+          },
+          {
+            "id": "Example.Dependency",
+            "names": [
+              "Example.Dependency"
+            ],
+            "repositoryUrl": "https://github.com/example/dependency",
+            "version": "2.3.4",
+            "commitHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        ],
+        "measurements": [
+          [
+            {
+              "timestamp": "2026-08-18T12:01:00Z",
+              "name": "benchmarks/cpu",
+              "value": 40
+            },
+            {
+              "timestamp": "2026-08-18T12:01:01Z",
+              "name": "benchmarks/cpu",
+              "value": 44
+            }
+          ]
+        ],
+        "environment": {
+          "architecture": "x64"
+        },
+        "variables": {},
+        "benchmarks": []
+      },
+      "load": {
+        "results": {
+          "http/rps/mean": 100000,
+          "http/latency/mean": 1.25,
+          "http/latency/99": 3.5,
+          "custom/scalar": 12.75
+        },
+        "metadata": [],
+        "dependencies": [],
+        "measurements": [
+          [
+            {
+              "timestamp": "2026-08-18T12:01:00Z",
+              "name": "http/rps",
+              "value": 99000
+            }
+          ]
+        ],
+        "environment": {},
+        "variables": {},
+        "benchmarks": []
+      }
+    },
+    "properties": {
+      "buildId": "12345",
+      "scenario": "Plaintext"
+    }
+  },
+  "benchmarks": []
+}

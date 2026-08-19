@@ -6,10 +6,35 @@ namespace Crank.PerfLabExporter
 {
     internal static class Program
     {
-        private static int Main()
+        private static async Task<int> Main(string[] args)
         {
-            Console.Error.WriteLine("Crank PerfLab conversion and publishing are not implemented in this contract-only scaffold.");
-            return 1;
+            using var cancellation = new CancellationTokenSource();
+            Console.CancelKeyPress += OnCancelKeyPress;
+            try
+            {
+                return await new ExporterApplication(Console.Out, Console.Error)
+                    .RunAsync(args, cancellation.Token);
+            }
+            catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+            {
+                Console.Error.WriteLine("error: export cancelled.");
+                return 1;
+            }
+            catch (Exception exception)
+            {
+                Console.Error.WriteLine($"error: {exception.Message}");
+                return 1;
+            }
+            finally
+            {
+                Console.CancelKeyPress -= OnCancelKeyPress;
+            }
+
+            void OnCancelKeyPress(object? sender, ConsoleCancelEventArgs eventArgs)
+            {
+                eventArgs.Cancel = true;
+                cancellation.Cancel();
+            }
         }
     }
 }

@@ -114,5 +114,16 @@ namespace Crank.PerfLabExporter.Tests
 
             Assert.Contains(errors, error => error.Path == "$.tests[0].counters[0].regressionThreshold");
         }
+
+        [Fact]
+        public void RejectsNonFiniteResult()
+        {
+            var report = ContractTestData.CreateValidReport();
+            report.Tests[0].Counters[0].Results = [double.PositiveInfinity];
+
+            var errors = PerfLabReportValidator.Validate(report);
+
+            Assert.Contains(errors, error => error.Path == "$.tests[0].counters[0].results");
+        }
     }
 }

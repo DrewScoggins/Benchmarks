@@ -142,7 +142,21 @@ namespace Crank.PerfLabExporter.Tests
                         Version = "10.0.0-preview",
                         CommitHash = "abcdef0123456789"
                     }
-                ]
+                ],
+                PerfRepoHash = "fedcba9876543210",
+                CrankVersion = "0.2.0-alpha",
+                AzureDevOps = new AzureDevOpsMetadata
+                {
+                    Project = "internal",
+                    Pipeline = "aspnet-benchmarks",
+                    BuildId = "42",
+                    BuildNumber = "20260818.1",
+                    BuildUrl = "https://dev.azure.com/example/internal/_build/results?buildId=42"
+                },
+                Sql = new CrankSqlIdentity
+                {
+                    Session = "trend-session"
+                }
             };
         }
     }

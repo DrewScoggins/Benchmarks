@@ -21,6 +21,21 @@ namespace Crank.PerfLabExporter.Contracts.Identity
         [JsonPropertyName("dependencies")]
         public List<DependencyMetadata> Dependencies { get; set; } = [];
 
+        [JsonPropertyName("perfRepoHash")]
+        public string PerfRepoHash { get; set; } = string.Empty;
+
+        [JsonPropertyName("crankVersion")]
+        public string CrankVersion { get; set; } = string.Empty;
+
+        [JsonPropertyName("helixCorrelationId")]
+        public string? HelixCorrelationId { get; set; }
+
+        [JsonPropertyName("azureDevOps")]
+        public AzureDevOpsMetadata AzureDevOps { get; set; } = new();
+
+        [JsonPropertyName("sql")]
+        public CrankSqlIdentity Sql { get; set; } = new();
+
         [JsonPropertyName("additionalData")]
         public Dictionary<string, string> AdditionalData { get; set; } = [];
     }
@@ -40,7 +55,7 @@ namespace Crank.PerfLabExporter.Contracts.Identity
         public string BuildName { get; set; } = string.Empty;
 
         [JsonPropertyName("timeStamp")]
-        public DateTimeOffset TimeStamp { get; set; }
+        public DateTimeOffset? TimeStamp { get; set; }
 
         [JsonPropertyName("version")]
         public string? Version { get; set; }
@@ -65,6 +80,9 @@ namespace Crank.PerfLabExporter.Contracts.Identity
 
         [JsonPropertyName("configurations")]
         public Dictionary<string, string> Configurations { get; set; } = [];
+
+        [JsonPropertyName("hidden")]
+        public bool Hidden { get; set; }
 
         [JsonPropertyName("additionalData")]
         public Dictionary<string, string> AdditionalData { get; set; } = [];
@@ -110,5 +128,35 @@ namespace Crank.PerfLabExporter.Contracts.Identity
 
         [JsonPropertyName("additionalData")]
         public Dictionary<string, string> AdditionalData { get; set; } = [];
+    }
+
+    public sealed class AzureDevOpsMetadata
+    {
+        [JsonPropertyName("project")]
+        public string Project { get; set; } = string.Empty;
+
+        [JsonPropertyName("pipeline")]
+        public string Pipeline { get; set; } = string.Empty;
+
+        [JsonPropertyName("buildId")]
+        public string BuildId { get; set; } = string.Empty;
+
+        [JsonPropertyName("buildNumber")]
+        public string BuildNumber { get; set; } = string.Empty;
+
+        [JsonPropertyName("buildUrl")]
+        public string BuildUrl { get; set; } = string.Empty;
+    }
+
+    public sealed class CrankSqlIdentity
+    {
+        [JsonPropertyName("session")]
+        public string Session { get; set; } = string.Empty;
+
+        [JsonPropertyName("table")]
+        public string? Table { get; set; }
+
+        [JsonPropertyName("recordId")]
+        public string? RecordId { get; set; }
     }
 }
