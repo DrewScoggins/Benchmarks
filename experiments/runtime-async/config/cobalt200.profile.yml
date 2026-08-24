@@ -1,0 +1,52 @@
+# Cobalt 200 (CB200) Arm64 pod -- newer hardware than the cobalt100 pod used in rounds 3-4.
+#
+# Relay names and IPs supplied by @DrewScoggins 2026-08-20:
+#   temp_ef_azure_client     : 10.1.4.7  -> load
+#   temp_ef_azure_server_al3 : 10.1.4.6  -> application (Azure Linux 3)
+#
+# No db agent was supplied, so database-backed scenarios (fortunes, fortunes_ef,
+# multiple_queries) cannot run on this pod. That matches the usable scenario set on
+# cobalt100 anyway, where the db agent deadlocked.
+#
+# `cores` is deliberately pinned to 16 -- the same (stale) value the cobalt100 profile
+# carried -- so that hardware is the ONLY variable between the two pods. `cores` is not
+# cosmetic: it feeds concurrencyPerHttpClient in httpclient.benchmarks.yml. Do not
+# "correct" it to the real core count without re-running cobalt100 to match.
+# Derive the true core count from results instead: benchmarks/cpu/raw / benchmarks/cpu.
+
+profiles:
+  cobalt200-lin-al3:
+    variables:
+      serverPort: 5000
+      serverAddress: 10.1.4.6
+      cores: 16
+    jobs:
+      application:
+        endpoints:
+          - http://10.1.4.6:5001
+        aliases:
+          - main
+      load:
+        endpoints:
+          - http://10.1.4.7:5001
+        aliases:
+          - warmup
+          - secondary
+
+  cobalt200-lin-al3-relay:
+    variables:
+      serverPort: 5000
+      serverAddress: 10.1.4.6
+      cores: 16
+    jobs:
+      application:
+        endpoints:
+          - https://aspnetperf.servicebus.windows.net/temp_ef_azure_server_al3
+        aliases:
+          - main
+      load:
+        endpoints:
+          - https://aspnetperf.servicebus.windows.net/temp_ef_azure_client
+        aliases:
+          - warmup
+          - secondary

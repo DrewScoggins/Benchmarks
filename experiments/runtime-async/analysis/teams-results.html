@@ -1,0 +1,109 @@
+<!doctype html><html><head><meta charset="utf-8">
+<style>
+ body{font-family:Segoe UI,Arial,sans-serif;font-size:13px;color:#1b1b1b;}
+ h2{font-size:16px;margin:18px 0 2px;}
+ h3{font-size:13px;margin:14px 0 4px;color:#333;}
+ p.sub{margin:0 0 8px;color:#555;font-size:12px;}
+ table{border-collapse:collapse;margin:6px 0 14px;}
+ th,td{border:1px solid #b8b8b8;padding:4px 9px;text-align:right;white-space:nowrap;}
+ th{background:#f0f0f0;font-weight:600;text-align:center;}
+ td.s,th.s{text-align:left;font-family:Consolas,monospace;}
+ td.num{font-family:Consolas,monospace;}
+ .good{color:#0a7d20;font-weight:600;}
+ .bad{color:#b30000;font-weight:600;}
+ .warn{color:#a35a00;font-weight:600;}
+ .muted{color:#666;}
+ .sep-strong{color:#0a3d91;font-weight:600;}
+ .legend{font-size:11.5px;color:#444;margin:2px 0 20px;}
+ .legend b{color:#1b1b1b;}
+</style></head><body>
+<h2>Runtime-async &mdash; Round 3 results</h2>
+<p class="sub">Runtime <code>ca4ed7d</code> (main @ 2026-08-04) + PR #131177 rebased &middot; ASP.NET <code>28dd8a5</code> &middot; medians across iterations &middot; higher Requests/sec is better.</p>
+<h2>x64 &mdash; aspnet-gold-lin-relay (56 cores, Linux x64)</h2>
+<p class="sub">Medians of 5 iterations per arm.</p>
+<h3>Throughput (Requests/sec)</h3>
+<table><tr><th class="s">Scenario</th><th>All&nbsp;off</th><th>Rt&nbsp;on</th><th>App&nbsp;off</th><th>All&nbsp;on</th><th>Full&nbsp;stack&nbsp;&Delta;</th><th>Runtime&nbsp;&Delta;</th><th>ASP.NET&nbsp;&Delta;</th><th>App&nbsp;only&nbsp;&Delta;</th><th>Noise&nbsp;(spread)</th><th>Separation</th></tr>
+<tr><td class="s">plaintext</td><td class="num">9,087,742</td><td class="num">9,190,732</td><td class="num">8,842,362</td><td class="num">8,835,504</td><td class="warn">-2.78%</td><td class="good">+1.13%</td><td class="warn">-3.79%</td><td class="muted">-0.08%</td><td class="num muted">5.56%</td><td class="sep-strong">25/25</td></tr>
+<tr><td class="s">json</td><td class="num">1,760,652</td><td class="num">1,795,415</td><td class="num">1,703,399</td><td class="num">1,699,346</td><td class="warn">-3.48%</td><td class="good">+1.97%</td><td class="bad">-5.13%</td><td class="muted">-0.24%</td><td class="num muted">1.82%</td><td class="sep-strong">25/25</td></tr>
+<tr><td class="s">mvc</td><td class="num">1,078,816</td><td class="num">1,074,502</td><td class="num">1,022,221</td><td class="num">997,700</td><td class="bad">-7.52%</td><td class="muted">-0.40%</td><td class="warn">-4.87%</td><td class="warn">-2.40%</td><td class="num muted">6.16%</td><td class="sep-strong">25/25</td></tr>
+<tr><td class="s">fortunes</td><td class="num">578,713</td><td class="num">578,655</td><td class="num">551,550</td><td class="num">548,271</td><td class="bad">-5.26%</td><td class="muted">-0.01%</td><td class="warn">-4.68%</td><td class="muted">-0.59%</td><td class="num muted">2.52%</td><td class="sep-strong">25/25</td></tr>
+<tr><td class="s">fortunes_ef</td><td class="num">477,106</td><td class="num">474,559</td><td class="num">454,001</td><td class="num">459,747</td><td class="warn">-3.64%</td><td class="muted">-0.53%</td><td class="warn">-4.33%</td><td class="good">+1.27%</td><td class="num muted">1.18%</td><td class="sep-strong">25/25</td></tr>
+<tr><td class="s">multiple_queries</td><td class="num">50,555</td><td class="num">51,279</td><td class="num">50,964</td><td class="num">50,990</td><td class="muted">+0.86%</td><td class="good">+1.43%</td><td class="muted">-0.61%</td><td class="muted">+0.05%</td><td class="num muted">2.5%</td><td class="muted">6/25</td></tr>
+<tr><td class="s">orchard</td><td class="num">&mdash;</td><td class="num">&mdash;</td><td class="num">18,387</td><td class="num">19,242</td><td class="muted">&mdash;</td><td class="muted">&mdash;</td><td class="muted">&mdash;</td><td class="good">+4.65%</td><td class="num muted">10.61%</td><td class="muted">&mdash;</td></tr>
+</table>
+<h3>Latency (ms) &mdash; lower is better</h3>
+<table><tr><th class="s">Scenario</th><th>Pct</th><th>All&nbsp;off</th><th>Rt&nbsp;on</th><th>App&nbsp;off</th><th>All&nbsp;on</th><th>Full&nbsp;stack&nbsp;&Delta;</th><th>Runtime&nbsp;&Delta;</th><th>ASP.NET&nbsp;&Delta;</th><th>App&nbsp;only&nbsp;&Delta;</th></tr>
+<tr><td class="s">fortunes</td><td>P50</td><td class="num">0.38</td><td class="num">0.38</td><td class="num">0.40</td><td class="num">0.40</td><td class="warn">+4.99%</td><td class="muted">-0.79%</td><td class="bad">+5.82%</td><td class="muted">0.00%</td></tr>
+<tr><td class="s">fortunes</td><td>P90</td><td class="num">0.79</td><td class="num">0.80</td><td class="num">0.84</td><td class="num">0.85</td><td class="bad">+8.28%</td><td class="warn">+1.27%</td><td class="bad">+5.53%</td><td class="warn">+1.31%</td></tr>
+<tr><td class="s">fortunes_ef</td><td>P50</td><td class="num">0.46</td><td class="num">0.46</td><td class="num">0.48</td><td class="num">0.47</td><td class="warn">+2.60%</td><td class="muted">+0.43%</td><td class="warn">+3.02%</td><td class="muted">-0.84%</td></tr>
+<tr><td class="s">fortunes_ef</td><td>P90</td><td class="num">0.94</td><td class="num">0.95</td><td class="num">0.99</td><td class="num">0.98</td><td class="warn">+4.26%</td><td class="warn">+1.06%</td><td class="warn">+4.21%</td><td class="good">-1.01%</td></tr>
+<tr><td class="s">json</td><td>P50</td><td class="num">0.12</td><td class="num">0.12</td><td class="num">0.13</td><td class="num">0.13</td><td class="warn">+4.00%</td><td class="good">-1.60%</td><td class="bad">+5.69%</td><td class="muted">0.00%</td></tr>
+<tr><td class="s">json</td><td>P90</td><td class="num">0.24</td><td class="num">0.23</td><td class="num">0.25</td><td class="num">0.25</td><td class="bad">+5.08%</td><td class="good">-3.81%</td><td class="bad">+8.37%</td><td class="muted">+0.81%</td></tr>
+<tr><td class="s">multiple_queries</td><td>P50</td><td class="num">9.92</td><td class="num">9.79</td><td class="num">9.82</td><td class="num">9.83</td><td class="muted">-0.91%</td><td class="good">-1.31%</td><td class="muted">+0.31%</td><td class="muted">+0.10%</td></tr>
+<tr><td class="s">multiple_queries</td><td>P90</td><td class="num">12.39</td><td class="num">12.17</td><td class="num">12.28</td><td class="num">12.29</td><td class="muted">-0.81%</td><td class="good">-1.78%</td><td class="muted">+0.90%</td><td class="muted">+0.08%</td></tr>
+<tr><td class="s">mvc</td><td>P50</td><td class="num">0.19</td><td class="num">0.19</td><td class="num">0.20</td><td class="num">0.21</td><td class="bad">+8.42%</td><td class="good">-1.05%</td><td class="bad">+7.98%</td><td class="warn">+1.48%</td></tr>
+<tr><td class="s">mvc</td><td>P90</td><td class="num">0.57</td><td class="num">0.60</td><td class="num">0.59</td><td class="num">0.67</td><td class="bad">+16.17%</td><td class="warn">+3.65%</td><td class="good">-1.34%</td><td class="bad">+13.61%</td></tr>
+<tr><td class="s">orchard</td><td>P50</td><td class="num">&mdash;</td><td class="num">&mdash;</td><td class="num">1.49</td><td class="num">1.45</td><td class="muted">&mdash;</td><td class="muted">&mdash;</td><td class="muted">&mdash;</td><td class="good">-3.02%</td></tr>
+<tr><td class="s">orchard</td><td>P90</td><td class="num">&mdash;</td><td class="num">&mdash;</td><td class="num">2.39</td><td class="num">2.20</td><td class="muted">&mdash;</td><td class="muted">&mdash;</td><td class="muted">&mdash;</td><td class="good">-8.03%</td></tr>
+<tr><td class="s">plaintext</td><td>P50</td><td class="num">0.29</td><td class="num">0.29</td><td class="num">0.31</td><td class="num">0.30</td><td class="warn">+4.12%</td><td class="warn">+1.37%</td><td class="warn">+3.73%</td><td class="muted">-0.98%</td></tr>
+<tr><td class="s">plaintext</td><td>P90</td><td class="num">1.13</td><td class="num">1.29</td><td class="num">1.27</td><td class="num">1.24</td><td class="bad">+9.73%</td><td class="bad">+14.16%</td><td class="good">-1.55%</td><td class="good">-2.36%</td></tr>
+</table>
+<h2>Arm64 &mdash; cobalt-cloud-lin-al3-relay (4 cores, Azure Linux 3 Arm64 VM)</h2>
+<p class="sub">Medians of 7 iterations per arm.</p>
+<h3>Throughput (Requests/sec)</h3>
+<table><tr><th class="s">Scenario</th><th>All&nbsp;off</th><th>Rt&nbsp;on</th><th>App&nbsp;off</th><th>All&nbsp;on</th><th>Full&nbsp;stack&nbsp;&Delta;</th><th>Runtime&nbsp;&Delta;</th><th>ASP.NET&nbsp;&Delta;</th><th>App&nbsp;only&nbsp;&Delta;</th><th>Noise&nbsp;(spread)</th><th>Separation</th></tr>
+<tr><td class="s">plaintext</td><td class="num">1,579,252</td><td class="num">1,537,394</td><td class="num">1,360,593</td><td class="num">1,372,666</td><td class="bad">-13.08%</td><td class="warn">-2.65%</td><td class="bad">-11.50%</td><td class="muted">+0.89%</td><td class="num muted">6.7%</td><td class="sep-strong">49/49</td></tr>
+<tr><td class="s">json</td><td class="num">233,684</td><td class="num">228,667</td><td class="num">191,634</td><td class="num">186,228</td><td class="bad">-20.31%</td><td class="warn">-2.15%</td><td class="bad">-16.20%</td><td class="warn">-2.82%</td><td class="num muted">9.09%</td><td class="sep-strong">49/49</td></tr>
+<tr><td class="s">mvc</td><td class="num">118,692</td><td class="num">120,371</td><td class="num">103,161</td><td class="num">105,695</td><td class="bad">-10.95%</td><td class="good">+1.41%</td><td class="bad">-14.30%</td><td class="good">+2.46%</td><td class="num muted">18%</td><td class="muted">48/49</td></tr>
+<tr><td class="s">orchard</td><td class="num">&mdash;</td><td class="num">&mdash;</td><td class="num">3,089</td><td class="num">3,349</td><td class="muted">&mdash;</td><td class="muted">&mdash;</td><td class="muted">&mdash;</td><td class="good">+8.39%</td><td class="num muted">8.29%</td><td class="muted">&mdash;</td></tr>
+<tr><td class="s">multiple_queries</td><td class="num">2,200</td><td class="num">&mdash;</td><td class="num">2,146</td><td class="num">2,384</td><td class="good">+8.36%</td><td class="muted">&mdash;</td><td class="muted">&mdash;</td><td class="good">+11.09%</td><td class="num muted">30.32%</td><td class="muted">15/42</td></tr>
+</table>
+<p class="sub">Excluded (runs failed, no complete arm set): <b>fortunes</b>.</p>
+<h3>Latency (ms) &mdash; lower is better</h3>
+<table><tr><th class="s">Scenario</th><th>Pct</th><th>All&nbsp;off</th><th>Rt&nbsp;on</th><th>App&nbsp;off</th><th>All&nbsp;on</th><th>Full&nbsp;stack&nbsp;&Delta;</th><th>Runtime&nbsp;&Delta;</th><th>ASP.NET&nbsp;&Delta;</th><th>App&nbsp;only&nbsp;&Delta;</th></tr>
+<tr><td class="s">json</td><td>P50</td><td class="num">1.06</td><td class="num">1.08</td><td class="num">1.29</td><td class="num">1.33</td><td class="bad">+25.47%</td><td class="warn">+1.89%</td><td class="bad">+19.44%</td><td class="warn">+3.10%</td></tr>
+<tr><td class="s">json</td><td>P90</td><td class="num">1.49</td><td class="num">1.52</td><td class="num">1.81</td><td class="num">1.85</td><td class="bad">+24.16%</td><td class="warn">+2.01%</td><td class="bad">+19.08%</td><td class="warn">+2.21%</td></tr>
+<tr><td class="s">multiple_queries</td><td>P50</td><td class="num">229.16</td><td class="num">&mdash;</td><td class="num">232.19</td><td class="num">211.34</td><td class="good">-7.78%</td><td class="muted">&mdash;</td><td class="muted">&mdash;</td><td class="good">-8.98%</td></tr>
+<tr><td class="s">multiple_queries</td><td>P90</td><td class="num">259.75</td><td class="num">&mdash;</td><td class="num">277.35</td><td class="num">243.99</td><td class="good">-6.07%</td><td class="muted">&mdash;</td><td class="muted">&mdash;</td><td class="good">-12.03%</td></tr>
+<tr><td class="s">mvc</td><td>P50</td><td class="num">2.06</td><td class="num">2.05</td><td class="num">2.33</td><td class="num">2.31</td><td class="bad">+12.14%</td><td class="muted">-0.49%</td><td class="bad">+13.66%</td><td class="muted">-0.86%</td></tr>
+<tr><td class="s">mvc</td><td>P90</td><td class="num">3.07</td><td class="num">2.96</td><td class="num">3.50</td><td class="num">3.48</td><td class="bad">+13.36%</td><td class="good">-3.58%</td><td class="bad">+18.24%</td><td class="muted">-0.57%</td></tr>
+<tr><td class="s">orchard</td><td>P50</td><td class="num">&mdash;</td><td class="num">&mdash;</td><td class="num">7.92</td><td class="num">7.30</td><td class="muted">&mdash;</td><td class="muted">&mdash;</td><td class="muted">&mdash;</td><td class="good">-7.81%</td></tr>
+<tr><td class="s">orchard</td><td>P90</td><td class="num">&mdash;</td><td class="num">&mdash;</td><td class="num">21.22</td><td class="num">19.61</td><td class="muted">&mdash;</td><td class="muted">&mdash;</td><td class="muted">&mdash;</td><td class="good">-7.58%</td></tr>
+<tr><td class="s">plaintext</td><td>P50</td><td class="num">1.41</td><td class="num">1.45</td><td class="num">1.65</td><td class="num">1.63</td><td class="bad">+15.60%</td><td class="warn">+2.84%</td><td class="bad">+13.79%</td><td class="good">-1.21%</td></tr>
+<tr><td class="s">plaintext</td><td>P90</td><td class="num">2.71</td><td class="num">2.80</td><td class="num">3.18</td><td class="num">3.15</td><td class="bad">+16.24%</td><td class="warn">+3.32%</td><td class="bad">+13.57%</td><td class="muted">-0.94%</td></tr>
+</table>
+<h2>Arm64 Cobalt 200 &mdash; cobalt200-lin-al3-relay (128-core host, app confined to 4 cores via cpuSet 0-3)</h2>
+<p class="sub">Medians of 7 iterations per arm.</p>
+<h3>Throughput (Requests/sec)</h3>
+<table><tr><th class="s">Scenario</th><th>All&nbsp;off</th><th>Rt&nbsp;on</th><th>App&nbsp;off</th><th>All&nbsp;on</th><th>Full&nbsp;stack&nbsp;&Delta;</th><th>Runtime&nbsp;&Delta;</th><th>ASP.NET&nbsp;&Delta;</th><th>App&nbsp;only&nbsp;&Delta;</th><th>Noise&nbsp;(spread)</th><th>Separation</th></tr>
+<tr><td class="s">plaintext</td><td class="num">2,719,326</td><td class="num">2,723,722</td><td class="num">2,636,480</td><td class="num">2,635,472</td><td class="warn">-3.08%</td><td class="muted">+0.16%</td><td class="warn">-3.20%</td><td class="muted">-0.04%</td><td class="num muted">2.31%</td><td class="sep-strong">49/49</td></tr>
+<tr><td class="s">json</td><td class="num">369,516</td><td class="num">368,861</td><td class="num">351,360</td><td class="num">349,491</td><td class="bad">-5.42%</td><td class="muted">-0.18%</td><td class="warn">-4.75%</td><td class="muted">-0.53%</td><td class="num muted">5.39%</td><td class="sep-strong">49/49</td></tr>
+<tr><td class="s">mvc</td><td class="num">266,806</td><td class="num">265,322</td><td class="num">253,573</td><td class="num">252,371</td><td class="bad">-5.41%</td><td class="muted">-0.56%</td><td class="warn">-4.43%</td><td class="muted">-0.47%</td><td class="num muted">4.85%</td><td class="sep-strong">49/49</td></tr>
+</table>
+<h3>Latency (ms) &mdash; lower is better</h3>
+<table><tr><th class="s">Scenario</th><th>Pct</th><th>All&nbsp;off</th><th>Rt&nbsp;on</th><th>App&nbsp;off</th><th>All&nbsp;on</th><th>Full&nbsp;stack&nbsp;&Delta;</th><th>Runtime&nbsp;&Delta;</th><th>ASP.NET&nbsp;&Delta;</th><th>App&nbsp;only&nbsp;&Delta;</th></tr>
+<tr><td class="s">json</td><td>P50</td><td class="num">0.69</td><td class="num">0.69</td><td class="num">0.72</td><td class="num">0.73</td><td class="bad">+5.50%</td><td class="muted">+0.14%</td><td class="warn">+4.77%</td><td class="muted">+0.55%</td></tr>
+<tr><td class="s">json</td><td>P90</td><td class="num">0.84</td><td class="num">0.84</td><td class="num">0.88</td><td class="num">0.88</td><td class="warn">+4.76%</td><td class="muted">+0.12%</td><td class="warn">+4.64%</td><td class="muted">0.00%</td></tr>
+<tr><td class="s">mvc</td><td>P50</td><td class="num">0.93</td><td class="num">0.93</td><td class="num">0.97</td><td class="num">0.98</td><td class="bad">+5.38%</td><td class="muted">0.00%</td><td class="warn">+4.30%</td><td class="warn">+1.03%</td></tr>
+<tr><td class="s">mvc</td><td>P90</td><td class="num">1.23</td><td class="num">1.23</td><td class="num">1.30</td><td class="num">1.31</td><td class="bad">+6.50%</td><td class="muted">0.00%</td><td class="bad">+5.69%</td><td class="muted">+0.77%</td></tr>
+<tr><td class="s">plaintext</td><td>P50</td><td class="num">0.82</td><td class="num">0.82</td><td class="num">0.85</td><td class="num">0.85</td><td class="warn">+3.16%</td><td class="muted">-0.24%</td><td class="warn">+3.41%</td><td class="muted">0.00%</td></tr>
+<tr><td class="s">plaintext</td><td>P90</td><td class="num">1.50</td><td class="num">1.50</td><td class="num">1.54</td><td class="num">1.54</td><td class="warn">+2.67%</td><td class="muted">0.00%</td><td class="warn">+2.67%</td><td class="muted">0.00%</td></tr>
+</table>
+<div class="legend">
+<b>All off</b> = runtime + ASP.NET + app all built with runtime-async disabled (baseline).<br>
+<b>Rt on</b> = runtime built with runtime-async enabled, ASP.NET still disabled, app not opted in.<br>
+<b>App off</b> = runtime + ASP.NET built with runtime-async enabled, benchmark app not opted in.<br>
+<b>All on</b> = runtime + ASP.NET + app all runtime-async enabled.<br>
+<b>Full stack &Delta;</b> = All off &rarr; All on. The total cost of the feature. Negative = slower for throughput, positive = worse for latency.<br>
+<b>Runtime &Delta;</b> = All off &rarr; Rt on. The cost of the <i>runtime</i> layer alone, with ASP.NET still off.<br>
+<b>ASP.NET &Delta;</b> = Rt on &rarr; App off. The cost of the <i>ASP.NET</i> layer alone, on top of an already-async runtime.<br>
+<b>App only &Delta;</b> = App off &rarr; All on. The cost of an application opting in, on top of an already-async framework.<br>
+<b>Noise (spread)</b> = worst (max&minus;min)/median across iterations for that scenario. Treat any delta smaller than this as noise.<br>
+<b>Colour</b> is by <i>effect</i>, not by sign: <span class="bad">red</span> = regression &ge;5%, <span class="warn">amber</span> = regression 1&ndash;5%, <span class="good">green</span> = improvement &ge;1%, grey = within &plusmn;1%. In the latency tables a <i>rise</i> is the regression, so the sign-to-colour mapping is inverted there.<br>
+<b>Separation</b> = Mann-Whitney pairwise wins, All off vs All on. <span class="sep-strong">25/25</span> or <span class="sep-strong">49/49</span> means every baseline iteration beat every async-on iteration (p&nbsp;&asymp;&nbsp;0.004 or better) &mdash; more reliable than spread on noisy scenarios.<br>
+<b>orchard</b> publishes framework-dependent, so it cannot receive the runtime-async-off overlay and has no <i>All off</i> arm.<br>
+<b>Environment</b> is pinned per architecture (x64 SDK <code>11.0.100-rc.1.26402.101</code>, Arm64 <code>11.0.100-rc.1.26404.112</code>, load client <code>8.0.423</code>) so all four arms share the toolchain each was originally measured on. Absolute numbers are only comparable <i>within</i> an architecture.<br>
+<b>Arm64 database scenarios</b> (<i>fortunes</i>, <i>fortunes_ef</i>) failed on that pod &mdash; its db agent deadlocks; treat any Arm64 db row as unreliable.
+</div>
+</body></html>
+

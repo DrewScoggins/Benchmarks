@@ -1,0 +1,21 @@
+{
+  "OverlayOn": "C:\\Users\\anscoggi\\.copilot\\session-state\\c84dfb95-3cab-4781-8318-3c46537e2d6e\\files\\runtimeasync\\overlay\\r3-arm64-on",
+  "OverlayOff": "C:\\Users\\anscoggi\\.copilot\\session-state\\c84dfb95-3cab-4781-8318-3c46537e2d6e\\files\\runtimeasync\\overlay\\r3-arm64-off",
+  "RuntimeSha": "83a151b268bc2411af81d442a4c1ed845f59fde5",
+  "AspNetSha": "28dd8a5895819baed4d7211120dbff0b452cc368",
+  "Arch": "arm64",
+  "Tag": "r3-arm64",
+  "Source": "local-build",
+  "StagedUtc": "2026-08-04T19:15:31.2178667Z",
+  "RuntimeBaseSha": "ca4ed7d4a265c32e5240863c6b8ff45121339cc4",
+  "ShaCorrectionNote": "RuntimeSha was previously recorded as 70d6992b34776acddf85b56f780873cbfe92fc4b, which does not exist in the repo; corrected 2026-08-13 to the verified worktree HEAD.",
+  "OverlayRtOn": "C:\\Users\\anscoggi\\.copilot\\session-state\\c84dfb95-3cab-4781-8318-3c46537e2d6e\\files\\runtimeasync\\overlay\\r3-arm64-rton",
+  "RtOnNote": "Mixed overlay composed by New-MixedOverlay.ps1: runtime layer (317 files) from the ON build, ASP.NET layer (134 files) from the OFF build. Same artifacts as the other arms; no rebuild.",
+  "SdkVersion": "11.0.100-rc.1.26404.112",
+  "RuntimeVersion": "11.0.0-rc.1.26404.112",
+  "AspNetCoreVersion": "11.0.0-rc.1.26404.112",
+  "LoadSdkVersion": "8.0.423",
+  "Profile": "cobalt-cloud-lin-al3",
+  "ExtraConfig": "D:\\git\\benchmarks\\build\\azure.profile.yml",
+  "PinNote": "crank defaults unpinned versions to \"latest available\". Round-3 arms ran 2026-08-04/05 and the rt-on arm ran 2026-08-17, by which time the SDK/runtime/load-client had all moved. These pins restore the exact environment each arch was originally measured on; published-size is the canary (x64 138,740 / arm64 144,025)."
+}
