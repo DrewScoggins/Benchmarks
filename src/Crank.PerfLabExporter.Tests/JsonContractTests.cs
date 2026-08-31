@@ -88,10 +88,13 @@ namespace Crank.PerfLabExporter.Tests
             Assert.True(counter.GetProperty("higherIsBetter").GetBoolean());
             Assert.Equal("requests/sec", counter.GetProperty("metricName").GetString());
             Assert.Equal(0.02, counter.GetProperty("regressionThreshold").GetDouble());
+            var unmappedCounter = root.GetProperty("tests")[0].GetProperty("counters")[1];
+            Assert.Equal(JsonValueKind.False, unmappedCounter.GetProperty("higherIsBetter").ValueKind);
+            Assert.False(unmappedCounter.TryGetProperty("regressionThreshold", out _));
         }
 
         [Fact]
-        public void AcceptsLegacyCounterWithOmittedOptionalFields()
+        public void DefaultsOmittedDirectionToFalseAndKeepsThresholdOptional()
         {
             const string json =
                 """
@@ -107,11 +110,11 @@ namespace Crank.PerfLabExporter.Tests
             var counter = JsonSerializer.Deserialize<PerfLabCounter>(json, SerializerOptions);
 
             Assert.NotNull(counter);
-            Assert.Null(counter.HigherIsBetter);
+            Assert.False(counter.HigherIsBetter);
             Assert.Null(counter.RegressionThreshold);
 
             var serialized = JsonSerializer.Serialize(counter, SerializerOptions);
-            Assert.Contains("\"higherIsBetter\":null", serialized, StringComparison.Ordinal);
+            Assert.Contains("\"higherIsBetter\":false", serialized, StringComparison.Ordinal);
             Assert.DoesNotContain("regressionThreshold", serialized, StringComparison.Ordinal);
         }
 
@@ -140,7 +143,7 @@ namespace Crank.PerfLabExporter.Tests
             Assert.NotNull(policy);
             Assert.Null(policy.Mappings[0].RegressionThreshold);
             Assert.Null(policy.Mappings[0].Normalization);
-            Assert.Null(policy.UnmappedCounter.HigherIsBetter);
+            Assert.False(policy.UnmappedCounter.HigherIsBetter);
             Assert.Empty(CounterPolicyValidator.Validate(policy));
         }
 

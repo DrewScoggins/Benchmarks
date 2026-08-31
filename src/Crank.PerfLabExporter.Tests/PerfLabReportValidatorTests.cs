@@ -10,14 +10,14 @@ namespace Crank.PerfLabExporter.Tests
     public class PerfLabReportValidatorTests
     {
         [Fact]
-        public void AcceptsUnknownDirectionForNonTopCounter()
+        public void AcceptsFalseDirectionForNonTopCounter()
         {
             var report = ContractTestData.CreateValidReport();
 
             var errors = PerfLabReportValidator.Validate(report);
 
             Assert.Empty(errors);
-            Assert.Null(report.Tests[0].Counters[1].HigherIsBetter);
+            Assert.False(report.Tests[0].Counters[1].HigherIsBetter);
             Assert.False(report.Tests[0].Counters[1].TopCounter);
         }
 
@@ -64,17 +64,6 @@ namespace Crank.PerfLabExporter.Tests
             var errors = PerfLabReportValidator.Validate(report);
 
             Assert.Contains(errors, error => error.Path == "$.tests[0].counters[0].defaultCounter");
-        }
-
-        [Fact]
-        public void RequiresKnownDirectionForTopCounter()
-        {
-            var report = ContractTestData.CreateValidReport();
-            report.Tests[0].Counters[0].HigherIsBetter = null;
-
-            var errors = PerfLabReportValidator.Validate(report);
-
-            Assert.Contains(errors, error => error.Path == "$.tests[0].counters[0].higherIsBetter");
         }
 
         [Fact]

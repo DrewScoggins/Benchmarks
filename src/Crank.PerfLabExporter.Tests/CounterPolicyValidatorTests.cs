@@ -20,7 +20,7 @@ namespace Crank.PerfLabExporter.Tests
             Assert.Equal(UnmappedCounterPolicy.SourcePathNameTemplate, policy.UnmappedCounter.NameTemplate);
             Assert.False(policy.UnmappedCounter.TopCounter);
             Assert.False(policy.UnmappedCounter.DefaultCounter);
-            Assert.Null(policy.UnmappedCounter.HigherIsBetter);
+            Assert.False(policy.UnmappedCounter.HigherIsBetter);
         }
 
         [Fact]
@@ -45,17 +45,6 @@ namespace Crank.PerfLabExporter.Tests
             var errors = CounterPolicyValidator.Validate(policy);
 
             Assert.Contains(errors, error => error.Path == "$.mappings[0].defaultCounter");
-        }
-
-        [Fact]
-        public void RequiresKnownDirectionForTopMapping()
-        {
-            var policy = ContractTestData.CreateValidPolicy();
-            policy.Mappings[1].HigherIsBetter = null;
-
-            var errors = CounterPolicyValidator.Validate(policy);
-
-            Assert.Contains(errors, error => error.Path == "$.mappings[1].higherIsBetter");
         }
 
         [Fact]
@@ -115,7 +104,7 @@ namespace Crank.PerfLabExporter.Tests
         }
 
         [Fact]
-        public void RequiresUnknownFallbackToRemainNonTop()
+        public void RequiresFallbackToRemainNonTopWithFalseDirection()
         {
             var policy = ContractTestData.CreateValidPolicy();
             policy.UnmappedCounter.TopCounter = true;

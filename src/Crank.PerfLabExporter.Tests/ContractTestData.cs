@@ -58,7 +58,7 @@ namespace Crank.PerfLabExporter.Tests
                                 Name = "jobs.load.results['custom/scalar']",
                                 TopCounter = false,
                                 DefaultCounter = false,
-                                HigherIsBetter = null,
+                                HigherIsBetter = false,
                                 MetricName = "value",
                                 Results = [42]
                             }

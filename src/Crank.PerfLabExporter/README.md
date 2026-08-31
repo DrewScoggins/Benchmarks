@@ -12,8 +12,10 @@ or exclude scenario families and exact scenario names; the default policy
 omits incompatible mean and P99 latency values only for
 `RejectionInvalidHeaderHttpSys` and `RejectionInvalidHeaderKestrel`.
 Requests/sec remains the default counter, and every other finite numeric scalar
-is retained with its fully qualified source path, `value` unit, unknown
-direction, and non-top/non-default roles. Object and array payloads (including
+is retained with its fully qualified source path, `value` unit,
+`higherIsBetter: false`, and non-top/non-default roles. The direction is
+irrelevant for these storage-only counters because they do not participate in
+normal top-counter regression detection. Object and array payloads (including
 raw distributions and histograms) are skipped with diagnostics and are never
 flattened into counters or samples. Top-level non-finite numeric
 representations fail conversion.

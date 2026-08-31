@@ -83,11 +83,6 @@ namespace Crank.PerfLabExporter.Validation
                 errors.Add(new($"{path}.defaultCounter", "The default mapping must also be a top mapping."));
             }
 
-            if ((mapping.TopCounter || mapping.DefaultCounter) && mapping.HigherIsBetter is null)
-            {
-                errors.Add(new($"{path}.higherIsBetter", "Top and default mappings require a known direction."));
-            }
-
             if (!ValidationRules.IsValidThreshold(mapping.RegressionThreshold))
             {
                 errors.Add(new(
@@ -270,9 +265,9 @@ namespace Crank.PerfLabExporter.Validation
                 errors.Add(new(path, "Unmapped counters must be non-top and non-default."));
             }
 
-            if (fallback.HigherIsBetter is not null)
+            if (fallback.HigherIsBetter)
             {
-                errors.Add(new($"{path}.higherIsBetter", "Unmapped counters must have unknown direction."));
+                errors.Add(new($"{path}.higherIsBetter", "Unmapped counters must use false direction."));
             }
         }
 

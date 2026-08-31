@@ -76,7 +76,7 @@ namespace Crank.PerfLabExporter.Tests
                 counter => counter.Name == "jobs.load.results['custom/scalar']");
             Assert.False(unmapped.TopCounter);
             Assert.False(unmapped.DefaultCounter);
-            Assert.Null(unmapped.HigherIsBetter);
+            Assert.False(unmapped.HigherIsBetter);
             Assert.Equal("value", unmapped.MetricName);
             Assert.Equal(12.75, Assert.Single(unmapped.Results!));
             Assert.DoesNotContain(

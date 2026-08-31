@@ -125,11 +125,6 @@ namespace Crank.PerfLabExporter.Validation
                 errors.Add(new($"{path}.defaultCounter", "The default counter must also be a top counter."));
             }
 
-            if ((counter.TopCounter || counter.DefaultCounter) && counter.HigherIsBetter is null)
-            {
-                errors.Add(new($"{path}.higherIsBetter", "Top and default counters require a known direction."));
-            }
-
             if (!ValidationRules.IsValidThreshold(counter.RegressionThreshold))
             {
                 errors.Add(new(

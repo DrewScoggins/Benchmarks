@@ -114,7 +114,7 @@ namespace Crank.PerfLabExporter.Contracts.PerfLab
         public bool DefaultCounter { get; set; }
 
         [JsonPropertyName("higherIsBetter")]
-        public bool? HigherIsBetter { get; set; }
+        public bool HigherIsBetter { get; set; }
 
         [JsonPropertyName("metricName")]
         public string MetricName { get; set; } = string.Empty;

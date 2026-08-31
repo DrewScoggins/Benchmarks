@@ -30,7 +30,7 @@ namespace Crank.PerfLabExporter.Contracts.Policy
         public string MetricName { get; set; } = string.Empty;
 
         [JsonPropertyName("higherIsBetter")]
-        public bool? HigherIsBetter { get; set; }
+        public bool HigherIsBetter { get; set; }
 
         [JsonPropertyName("topCounter")]
         public bool TopCounter { get; set; }
@@ -86,7 +86,7 @@ namespace Crank.PerfLabExporter.Contracts.Policy
         public string MetricName { get; set; } = "value";
 
         [JsonPropertyName("higherIsBetter")]
-        public bool? HigherIsBetter { get; set; }
+        public bool HigherIsBetter { get; set; }
 
         [JsonPropertyName("topCounter")]
         public bool TopCounter { get; set; }
