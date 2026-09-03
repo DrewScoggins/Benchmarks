@@ -37,9 +37,7 @@ _PINNED_RAW_BASE_URL = (
     "https://raw.githubusercontent.com/aspnet/Benchmarks/"
     "$(Build.SourceVersion)"
 )
-_PINNED_CONFIG_BASE_URL = (
-    f"{_PINNED_RAW_BASE_URL}/build/trend-configs"
-)
+_CANONICAL_CONFIG_BASE_URL = _PINNED_RAW_BASE_URL
 
 
 def _read(name):
@@ -330,7 +328,7 @@ class TestTrendTemplateContract(unittest.TestCase):
             parameters = call["parameters"]
             job_prefix = call["job_prefix"]
             self.assertEqual(
-                _PINNED_CONFIG_BASE_URL,
+                _CANONICAL_CONFIG_BASE_URL,
                 parameters["benchmarksRawBaseUrl"],
             )
             self.assertEqual(
@@ -338,8 +336,12 @@ class TestTrendTemplateContract(unittest.TestCase):
                 parameters["enablePerfLabPublication"],
             )
             self.assertIn(
-                f"--config {_PINNED_CONFIG_BASE_URL}/"
+                f"--config {_CANONICAL_CONFIG_BASE_URL}/"
                 "build/ci.profile.yml",
+                parameters["arguments"],
+            )
+            self.assertNotIn(
+                "trend-configs",
                 parameters["arguments"],
             )
             self.assertIn(
@@ -469,7 +471,7 @@ class TestTrendTemplateContract(unittest.TestCase):
                 self.assertGreaterEqual(len(benchmarks_urls), 4)
                 self.assertTrue(
                     all(
-                        url.startswith(_PINNED_CONFIG_BASE_URL + "/")
+                        url.startswith(_CANONICAL_CONFIG_BASE_URL + "/")
                         for url in benchmarks_urls
                     ),
                     command,

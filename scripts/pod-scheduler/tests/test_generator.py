@@ -123,7 +123,7 @@ class TestTrendLaneRendering(unittest.TestCase):
         self.assertIn(
             'benchmarksRawBaseUrl: "'
             "https://raw.githubusercontent.com/aspnet/Benchmarks/"
-            '$(Build.SourceVersion)/build/trend-configs"',
+            '$(Build.SourceVersion)"',
             yaml,
         )
         self.assertIn("enablePerfLabPublication: false", yaml)
@@ -131,12 +131,12 @@ class TestTrendLaneRendering(unittest.TestCase):
         self.assertIn(
             'arguments: "--config '
             "https://raw.githubusercontent.com/aspnet/Benchmarks/"
-            "$(Build.SourceVersion)/build/trend-configs/"
-            "build/ci.profile.yml "
+            "$(Build.SourceVersion)/build/ci.profile.yml "
             "--variable benchmarksCommit=$(Build.SourceVersion) "
             '--profile gold-lin-app --profile gold-load-load "',
             yaml,
         )
+        self.assertNotIn("trend-configs", yaml)
         self.assertNotIn("$(ciProfile)", yaml)
         self.assertIn(
             "perfLabQueue: Ubuntu.2204.Amd64.AspNetGold.Perf", yaml

@@ -18,8 +18,6 @@ cannot run in the same stage. The scheduler handles this automatically.
 Run from the repository root:
 
 ```bash
-python -m pip install -r scripts/pod-scheduler/requirements.txt
-
 # Show schedule summary
 python scripts/pod-scheduler/main.py --config build/benchmarks_ci_pods.json
 
@@ -53,8 +51,8 @@ cannot silently drop scenarios from the pipeline. Pass `--lenient` to fall
 back to the previous warn-and-skip behavior.
 
 Output is **deterministic**: identical input JSON always produces identical
-YAML and Trend config bundles, so regenerations diff cleanly. To verify, run
-the snapshot and recursive pinning tests:
+YAML, so regenerations diff cleanly. To verify, run the snapshot and Trend
+configuration contract tests:
 
 ```bash
 cd scripts/pod-scheduler
@@ -117,15 +115,12 @@ PerfLab storage or queue publication occurs. Enabling publication requires
 explicit approval and a separate single-pod canary scenario. The loader rejects
 broader or non-Trend opt-ins.
 
-Crank loads every `imports` URL before it merges command-line `--variable`
-values and renders templates. Consequently, an import URL cannot safely use a
-commit variable. During YAML generation, `trend_config_bundle.py` recursively
-flattens only Benchmarks-owned imports into `build/trend-configs`, retains
-external Crank imports at their existing revisions, and rewrites every
-Benchmarks-owned source or raw asset to `{{benchmarksCommit}}`. Trend passes
-`--variable benchmarksCommit=$(Build.SourceVersion)`. The variable defaults to
-`main` inside each generated config, while ordinary non-Trend configs remain
-unchanged.
+Trend references the canonical repository configs through a raw GitHub base
+URL pinned to `$(Build.SourceVersion)`. Benchmarks-owned source revisions and
+raw assets use `{{benchmarksCommit}}`; the shared default is `main`, and Trend
+overrides it with `--variable benchmarksCommit=$(Build.SourceVersion)`.
+Benchmarks-owned `imports` retain their existing URLs because Crank resolves
+imports before applying command-line variables.
 
 The `schedule` field's **hour** must be a `H` or `H/N` cron expression
 (e.g. `3` or `3/12`). Lists, ranges, and `*` are rejected at load time so the
@@ -212,7 +207,6 @@ share load/DB machines.
 | `scheduler.py` | Scheduling algorithm |
 | `config_loader.py` | JSON config parser + validation |
 | `generator.py` | YAML generation |
-| `trend_config_bundle.py` | Recursive pinned Trend config generation |
 | `tests/` | Unit + snapshot tests (`python -m unittest`) |
 
 This is intentionally script-style: the modules use absolute imports

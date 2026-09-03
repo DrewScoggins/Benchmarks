@@ -252,7 +252,7 @@ jobs:
       connection: ASPNET Benchmarks Service Bus
       serviceBusQueueName: citrine1
       serviceBusNamespace: aspnetbenchmarks
-      benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/trend-configs"
+      benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)"
       enablePerfLabPublication: false
       perfLabLaneName: aspnet-gold-linux-x64
       perfLabQueue: Ubuntu.2204.Amd64.AspNetGold.Perf
@@ -262,7 +262,7 @@ jobs:
       perfLabCores: "56"
       perfLabHardware: AspNetGold
       perfLabTopology: "SUT+Load"
-      arguments: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/trend-configs/build/ci.profile.yml --variable benchmarksCommit=$(Build.SourceVersion) --profile gold-lin-app --profile gold-load-load "
+      arguments: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/ci.profile.yml --variable benchmarksCommit=$(Build.SourceVersion) --profile gold-lin-app --profile gold-load-load "
 
 - job: Trends_Database_gold_win
   displayName: 8- Trends Database gold-win
@@ -276,7 +276,7 @@ jobs:
       connection: ASPNET Benchmarks Service Bus
       serviceBusQueueName: citrine2
       serviceBusNamespace: aspnetbenchmarks
-      benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/trend-configs"
+      benchmarksRawBaseUrl: "https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)"
       enablePerfLabPublication: false
       perfLabLaneName: aspnet-gold-windows-x64
       perfLabQueue: Windows.Server2022.Amd64.AspNetGold.Perf
@@ -286,7 +286,7 @@ jobs:
       perfLabCores: "56"
       perfLabHardware: AspNetGold
       perfLabTopology: "SUT+Load+DB"
-      arguments: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/trend-configs/build/ci.profile.yml --variable benchmarksCommit=$(Build.SourceVersion) --profile gold-win-app --profile gold-load2-load --profile gold-db-db "
+      arguments: "--config https://raw.githubusercontent.com/aspnet/Benchmarks/$(Build.SourceVersion)/build/ci.profile.yml --variable benchmarksCommit=$(Build.SourceVersion) --profile gold-win-app --profile gold-load2-load --profile gold-db-db "
 
 # GROUP 9
 

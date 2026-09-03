@@ -17,7 +17,6 @@ from models import (
     ScheduleConfig,
     sanitize_job_id,
 )
-from trend_config_bundle import bundle_repo_path
 
 
 _CRON_HOUR_RE = re.compile(r"^(\d+)(/\d+)?$")
@@ -222,7 +221,7 @@ def _render_yaml(
                     )
                 lines.append(
                     "      benchmarksRawBaseUrl: "
-                    f'"{raw_base_url}/build/trend-configs"'
+                    f'"{raw_base_url}"'
                 )
                 publication_enabled = str(
                     job.get("enable_perf_lab_publication", False)
@@ -246,7 +245,7 @@ def _render_yaml(
             ci_profile = (
                 "--config "
                 f"{pipeline.trend_benchmarks_raw_base_url}/"
-                f"{bundle_repo_path('build/ci.profile.yml')}"
+                "build/ci.profile.yml"
                 if job["template"] in _TREND_TEMPLATES
                 else "$(ciProfile)"
             )

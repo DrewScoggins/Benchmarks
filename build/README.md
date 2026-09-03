@@ -93,13 +93,10 @@ the same lane, queue, OS, configurations, test, and family identities used by
 the live templates. Rules are ordered, and an unresolved or ambiguous row is
 reported rather than assigned a fallback lane or family.
 
-For Trend jobs, the source configs define a raw GitHub base URL pinned to
-`$(Build.SourceVersion)`. Crank resolves `imports` before applying command-line
-variables, so templating an import URL would still float. The pod scheduler
-therefore recursively flattens Benchmarks-owned imports into the generated
-[`trend-configs`](trend-configs) bundle while retaining external Crank imports
-at their intended revisions. Benchmarks-owned source revisions and raw assets
-use `{{benchmarksCommit}}`, which defaults to `main` for standalone use and is
-overridden by Trend with `--variable
-benchmarksCommit=$(Build.SourceVersion)`. Ordinary configs remain unchanged,
-and the recursive contract tests verify the complete Trend config graph.
+Trend jobs load the canonical repository configs through a raw GitHub base URL
+pinned to `$(Build.SourceVersion)`. Benchmarks-owned source revisions and raw
+assets use `{{benchmarksCommit}}`, whose shared default is `main`; Trend
+overrides it with `--variable benchmarksCommit=$(Build.SourceVersion)`.
+Crank resolves `imports` before applying command-line variables, so existing
+Benchmarks-owned import URLs continue to use their declared revisions rather
+than being duplicated into a generated config tree.
