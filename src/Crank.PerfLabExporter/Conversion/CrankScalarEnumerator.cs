@@ -4,13 +4,11 @@
 
 using System.Text.Json;
 using Crank.PerfLabExporter.Contracts.Crank;
-using Crank.PerfLabExporter.Contracts.Policy;
 
 namespace Crank.PerfLabExporter.Conversion
 {
     public sealed record CrankScalar(
         string SourcePath,
-        CrankResultPath MappingPath,
         double Value);
 
     public sealed record CrankScalarEnumeration(
@@ -34,8 +32,7 @@ namespace Crank.PerfLabExporter.Conversion
             {
                 foreach (var result in job.Value.Results.OrderBy(result => result.Key, StringComparer.Ordinal))
                 {
-                    var mappingPath = new CrankResultPath(job.Key, result.Key);
-                    var sourcePath = mappingPath.ToString();
+                    var sourcePath = FormatPath(job.Key, result.Key);
                     if (result.Value.ValueKind == JsonValueKind.Number)
                     {
                         if (!result.Value.TryGetDouble(out var value) || !double.IsFinite(value))
@@ -44,7 +41,7 @@ namespace Crank.PerfLabExporter.Conversion
                         }
                         else
                         {
-                            scalars.Add(new CrankScalar(sourcePath, mappingPath, value));
+                            scalars.Add(new CrankScalar(sourcePath, value));
                         }
                     }
                     else if (IsNonFiniteRepresentation(result.Value))
@@ -69,6 +66,19 @@ namespace Crank.PerfLabExporter.Conversion
             }
 
             return new CrankScalarEnumeration(scalars, diagnostics);
+        }
+
+        private static string FormatPath(string job, string result)
+        {
+            static string Escape(string value) => value
+                .Replace("\\", "\\\\", StringComparison.Ordinal)
+                .Replace("'", "\\'", StringComparison.Ordinal);
+
+            var jobPath = job.All(character =>
+                char.IsAsciiLetterOrDigit(character) || character is '_' or '-')
+                    ? $".{job}"
+                    : $"['{Escape(job)}']";
+            return $"jobs{jobPath}.results['{Escape(result)}']";
         }
 
         private static bool IsNonFiniteRepresentation(JsonElement element)

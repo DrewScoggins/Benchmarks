@@ -2,14 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
-using Crank.PerfLabExporter.Backfill;
 using Crank.PerfLabExporter.CommandLine;
 using Crank.PerfLabExporter.Contracts;
 using Crank.PerfLabExporter.Contracts.Crank;
-using Crank.PerfLabExporter.Contracts.Identity;
 using Crank.PerfLabExporter.Contracts.PerfLab;
 using Crank.PerfLabExporter.Contracts.Policy;
 using Crank.PerfLabExporter.Conversion;
@@ -41,13 +37,6 @@ namespace Crank.PerfLabExporter
                 return 0;
             }
 
-            if (options.Mode == ExportMode.Backfill)
-            {
-                return await RunBackfillAsync(
-                    options.Backfill!,
-                    cancellationToken);
-            }
-
             var crankPath = ResolveInputPath(options.CrankJsonPath);
             var policyPath = ResolveInputPath(options.CounterPolicyPath);
             var serializerOptions = ContractJson.CreateSerializerOptions();
@@ -59,25 +48,11 @@ namespace Crank.PerfLabExporter
                 policyPath,
                 serializerOptions,
                 cancellationToken);
-            ExportIdentity identity;
-            string identitySource;
-            if (options.IdentitySource == IdentitySource.File)
-            {
-                var identityPath = ResolveInputPath(options.IdentityPath);
-                identity = await ReadJsonAsync<ExportIdentity>(
-                    identityPath,
-                    serializerOptions,
-                    cancellationToken);
-                identitySource = identityPath;
-            }
-            else
-            {
-                identity = LiveExportIdentityBuilder.Build(
-                    execution,
-                    options.LiveIdentity);
-                identitySource =
-                    $"crank-properties:{options.LiveIdentity.PropertyPrefix}";
-            }
+            var identity = LiveExportIdentityBuilder.Build(
+                execution,
+                options.LiveIdentity);
+            var identitySource =
+                $"crank-properties:{options.LiveIdentity.PropertyPrefix}";
 
             using var httpClient = new HttpClient();
             var githubToken = string.IsNullOrWhiteSpace(options.GitHubTokenEnvironmentVariable)
@@ -129,116 +104,6 @@ namespace Crank.PerfLabExporter
             }
 
             return 0;
-        }
-
-        private async Task<int> RunBackfillAsync(
-            BackfillOptions options,
-            CancellationToken cancellationToken)
-        {
-            BackfillPublicationSafety.Validate(
-                publish: options.Publish,
-                confirmation: options.PublicationConfirmation);
-            var policyPath = ResolveInputPath(options.CounterPolicyPath);
-            var mappingPath = ResolveInputPath(options.MappingPath);
-            var serializerOptions = ContractJson.CreateSerializerOptions();
-            var policy = await ReadJsonAsync<CounterPolicy>(
-                policyPath,
-                serializerOptions,
-                cancellationToken);
-            var policyBytes = await File.ReadAllBytesAsync(
-                policyPath,
-                cancellationToken);
-            var policyFingerprint = Convert.ToHexString(
-                SHA256.HashData(policyBytes)).ToLowerInvariant();
-            var loadedMapping = await LegacyTrendMappingLoader.LoadAsync(
-                mappingPath,
-                cancellationToken);
-            var connectionString = SqlConnectionStringResolver.Resolve(
-                options.ConnectionString,
-                options.ConnectionStringEnvironmentVariable);
-            var table = SqlTableIdentifier.Parse(options.Table);
-            var tokenProvider = SqlAuthenticationFactory.Create(
-                options.SqlAuthentication);
-            var repository = new SqlLegacyTrendRepository(
-                connectionString,
-                table,
-                tokenProvider,
-                options.SqlRetry,
-                new TaskRetryDelay(),
-                message => _error.WriteLine(message));
-
-            using var httpClient = new HttpClient();
-            var githubToken =
-                string.IsNullOrWhiteSpace(
-                    options.GitHubTokenEnvironmentVariable)
-                    ? null
-                    : Environment.GetEnvironmentVariable(
-                        options.GitHubTokenEnvironmentVariable);
-            var converter = new CrankPerfLabConverter(
-                new CachingCommitTimeResolver(
-                    new GitHubCommitTimeResolver(httpClient, githubToken)));
-            IPerfLabPublisher? publisher = null;
-            if (options.Publish)
-            {
-                var endpoints = StorageAccountEndpoints.Parse(
-                    options.StorageAccount!);
-                var credential = AzureCredentialFactory.Create(
-                    options.Authentication);
-                var storage = new AzurePerfLabStorageClient(
-                    endpoints,
-                    credential);
-                publisher = new PerfLabPublisher(
-                    storage,
-                    options.Retry,
-                    new TaskRetryDelay(),
-                    message => _error.WriteLine(message));
-            }
-
-            var checkpointPath = Path.GetFullPath(options.CheckpointPath);
-            var runner = new TrendBackfillRunner(
-                repository,
-                converter,
-                policy,
-                loadedMapping.Mapping,
-                publisher,
-                new BackfillCheckpointStore(checkpointPath),
-                new SystemBackfillClock(),
-                SecretRedactor.Create(
-                    connectionString,
-                    options.StorageAccount),
-                message => _error.WriteLine(message));
-            var summary = await runner.RunAsync(
-                new TrendBackfillExecutionOptions(
-                    options.StartUtc,
-                    options.EndUtc,
-                    options.BatchSize,
-                    options.MaximumRows,
-                    options.DryRun,
-                    options.PublicationConfirmation,
-                    table.CanonicalName,
-                    SqlConnectionStringResolver.CreateSourceIdentity(
-                        connectionString),
-                    options.SqlAuthentication.Mode.ToString(),
-                    loadedMapping.Fingerprint,
-                    loadedMapping.SourceName,
-                    policyFingerprint,
-                    Path.GetFileName(policyPath),
-                    options.OutputDirectory,
-                    checkpointPath,
-                    options.StorageAccount,
-                    options.Container,
-                    options.Queue,
-                    options.Identity),
-                cancellationToken);
-            var summaryBytes = JsonSerializer.SerializeToUtf8Bytes(
-                summary,
-                ContractJson.CreateSerializerOptions(writeIndented: true));
-            await AtomicFileWriter.WriteAsync(
-                Path.GetFullPath(options.SummaryPath),
-                summaryBytes,
-                cancellationToken);
-            await _output.WriteLineAsync(Encoding.UTF8.GetString(summaryBytes));
-            return summary.Unresolved == 0 && summary.Failed == 0 ? 0 : 1;
         }
 
         internal static string ResolveInputPath(string path)

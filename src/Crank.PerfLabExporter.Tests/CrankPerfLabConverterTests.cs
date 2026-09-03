@@ -372,21 +372,22 @@ namespace Crank.PerfLabExporter.Tests
         }
 
         [Fact]
-        public async Task RejectsContradictoryCrankAndExportIdentity()
+        public async Task RejectsResultWithoutConfiguredDefaultCounter()
         {
             var execution = FixtureLoader.LoadExecution();
-            execution.JobResults.Properties["buildId"] = "different-build";
+            execution.JobResults.Jobs["load"].Results.Remove(
+                "http/rps/mean");
             var converter = new CrankPerfLabConverter(
                 new StubCommitTimeResolver(DateTimeOffset.UtcNow));
 
-            var exception = await Assert.ThrowsAsync<CrankConversionException>(() =>
-                converter.ConvertAsync(
+            var exception = await Assert.ThrowsAsync<CrankConversionException>(
+                () => converter.ConvertAsync(
                     execution,
                     FixtureLoader.LoadPolicy(),
                     FixtureLoader.LoadIdentity(),
                     CreateSource()));
 
-            Assert.Contains("contradicts the supplied Azure DevOps build ID", exception.Message, StringComparison.Ordinal);
+            Assert.Contains("default counter", exception.Message);
         }
 
         private static async Task<CrankConversionResult> ConvertFixtureAsync()

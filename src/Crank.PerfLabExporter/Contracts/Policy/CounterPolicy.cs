@@ -13,15 +13,12 @@ namespace Crank.PerfLabExporter.Contracts.Policy
 
         [JsonPropertyName("mappings")]
         public List<CounterMapping> Mappings { get; set; } = [];
-
-        [JsonPropertyName("unmappedCounter")]
-        public UnmappedCounterPolicy UnmappedCounter { get; set; } = new();
     }
 
     public sealed class CounterMapping
     {
         [JsonPropertyName("path")]
-        public CrankResultPath? Path { get; set; }
+        public string Path { get; set; } = string.Empty;
 
         [JsonPropertyName("name")]
         public string Name { get; set; } = string.Empty;
@@ -42,56 +39,10 @@ namespace Crank.PerfLabExporter.Contracts.Policy
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public double? RegressionThreshold { get; set; }
 
-        [JsonPropertyName("normalization")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public CounterNormalization? Normalization { get; set; }
-
-        [JsonPropertyName("applicability")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public CounterApplicability? Applicability { get; set; }
-    }
-
-    public sealed class CounterNormalization
-    {
         [JsonPropertyName("scale")]
         public double Scale { get; set; } = 1;
 
-        [JsonPropertyName("offset")]
-        public double Offset { get; set; }
-    }
-
-    public sealed class CounterApplicability
-    {
-        [JsonPropertyName("includeScenarioFamilies")]
-        public List<string> IncludeScenarioFamilies { get; set; } = [];
-
-        [JsonPropertyName("excludeScenarioFamilies")]
-        public List<string> ExcludeScenarioFamilies { get; set; } = [];
-
-        [JsonPropertyName("includeScenarioNames")]
-        public List<string> IncludeScenarioNames { get; set; } = [];
-
-        [JsonPropertyName("excludeScenarioNames")]
-        public List<string> ExcludeScenarioNames { get; set; } = [];
-    }
-
-    public sealed class UnmappedCounterPolicy
-    {
-        public const string SourcePathNameTemplate = "{path}";
-
-        [JsonPropertyName("nameTemplate")]
-        public string NameTemplate { get; set; } = SourcePathNameTemplate;
-
-        [JsonPropertyName("metricName")]
-        public string MetricName { get; set; } = "value";
-
-        [JsonPropertyName("higherIsBetter")]
-        public bool HigherIsBetter { get; set; }
-
-        [JsonPropertyName("topCounter")]
-        public bool TopCounter { get; set; }
-
-        [JsonPropertyName("defaultCounter")]
-        public bool DefaultCounter { get; set; }
+        [JsonPropertyName("excludedScenarios")]
+        public List<string> ExcludedScenarios { get; set; } = [];
     }
 }

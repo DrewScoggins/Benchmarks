@@ -8,7 +8,6 @@ using Crank.PerfLabExporter.Contracts.Crank;
 using Crank.PerfLabExporter.Contracts.Identity;
 using Crank.PerfLabExporter.Contracts.PerfLab;
 using Crank.PerfLabExporter.Contracts.Policy;
-using Crank.PerfLabExporter.Validation;
 
 namespace Crank.PerfLabExporter.Tests
 {
@@ -119,7 +118,7 @@ namespace Crank.PerfLabExporter.Tests
         }
 
         [Fact]
-        public void AcceptsLegacyPolicyWithOmittedThresholdNormalizationAndFallback()
+        public void AppliesSimpleDefaultsToPolicyMappings()
         {
             const string json =
                 """
@@ -142,25 +141,12 @@ namespace Crank.PerfLabExporter.Tests
 
             Assert.NotNull(policy);
             Assert.Null(policy.Mappings[0].RegressionThreshold);
-            Assert.Null(policy.Mappings[0].Normalization);
-            Assert.False(policy.UnmappedCounter.HigherIsBetter);
-            Assert.Empty(CounterPolicyValidator.Validate(policy));
+            Assert.Equal(1, policy.Mappings[0].Scale);
+            Assert.Empty(policy.Mappings[0].ExcludedScenarios);
         }
 
         [Fact]
-        public void SerializesFullyQualifiedCrankPathAsPolicyString()
-        {
-            var path = new CrankResultPath("load", "http/latency/99");
-
-            var json = JsonSerializer.Serialize(path, SerializerOptions);
-            var roundTrip = JsonSerializer.Deserialize<CrankResultPath>(json, SerializerOptions);
-
-            Assert.Equal(path.ToString(), JsonSerializer.Deserialize<string>(json, SerializerOptions));
-            Assert.Equal(path, roundTrip);
-        }
-
-        [Fact]
-        public void RoundTripsCounterApplicability()
+        public void RoundTripsExcludedScenarios()
         {
             var policy = ContractTestData.CreateValidPolicy();
 
@@ -175,10 +161,7 @@ namespace Crank.PerfLabExporter.Tests
                     "RejectionInvalidHeaderHttpSys",
                     "RejectionInvalidHeaderKestrel"
                 ],
-                roundTrip.Mappings[1]
-                    .Applicability!
-                    .ExcludeScenarioNames);
-            Assert.Empty(CounterPolicyValidator.Validate(roundTrip));
+                roundTrip.Mappings[1].ExcludedScenarios);
         }
 
         [Fact]
@@ -187,27 +170,24 @@ namespace Crank.PerfLabExporter.Tests
             var policy = FixtureLoader.LoadPolicy();
             var latencyMappings = policy.Mappings
                 .Where(mapping =>
-                    mapping.Path?.Result is "http/latency/mean" or
-                        "http/latency/99")
+                    mapping.Path.EndsWith(
+                        "['http/latency/mean']",
+                        StringComparison.Ordinal) ||
+                    mapping.Path.EndsWith(
+                        "['http/latency/99']",
+                        StringComparison.Ordinal))
                 .ToList();
 
             Assert.Equal(2, latencyMappings.Count);
             foreach (var mapping in latencyMappings)
             {
-                var applicability = Assert.IsType<CounterApplicability>(
-                    mapping.Applicability);
-                Assert.Empty(applicability.IncludeScenarioFamilies);
-                Assert.Empty(applicability.ExcludeScenarioFamilies);
-                Assert.Empty(applicability.IncludeScenarioNames);
                 Assert.Equal(
                     [
                         "RejectionInvalidHeaderHttpSys",
                         "RejectionInvalidHeaderKestrel"
                     ],
-                    applicability.ExcludeScenarioNames);
+                    mapping.ExcludedScenarios);
             }
-
-            Assert.Empty(CounterPolicyValidator.Validate(policy));
         }
 
         [Fact]

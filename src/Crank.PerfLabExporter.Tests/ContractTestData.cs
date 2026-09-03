@@ -76,7 +76,7 @@ namespace Crank.PerfLabExporter.Tests
                 [
                     new CounterMapping
                     {
-                        Path = new CrankResultPath("load", "http/rps/mean"),
+                        Path = "jobs.load.results['http/rps/mean']",
                         Name = "Requests/sec",
                         MetricName = "requests/sec",
                         HigherIsBetter = true,
@@ -86,21 +86,18 @@ namespace Crank.PerfLabExporter.Tests
                     },
                     new CounterMapping
                     {
-                        Path = new CrankResultPath("load", "http/latency/99"),
+                        Path = "jobs.load.results['http/latency/99']",
                         Name = "P99 latency",
                         MetricName = "ms",
                         HigherIsBetter = false,
                         TopCounter = true,
                         RegressionThreshold = 0.05,
-                        Normalization = new CounterNormalization { Scale = 0.001 },
-                        Applicability = new CounterApplicability
-                        {
-                            ExcludeScenarioNames =
-                            [
-                                "RejectionInvalidHeaderHttpSys",
-                                "RejectionInvalidHeaderKestrel"
-                            ]
-                        }
+                        Scale = 0.001,
+                        ExcludedScenarios =
+                        [
+                            "RejectionInvalidHeaderHttpSys",
+                            "RejectionInvalidHeaderKestrel"
+                        ]
                     }
                 ]
             };

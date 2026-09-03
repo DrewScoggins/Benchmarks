@@ -18,12 +18,10 @@
       "topCounter": true,
       "defaultCounter": false,
       "regressionThreshold": 0.05,
-      "applicability": {
-        "excludeScenarioNames": [
-          "RejectionInvalidHeaderHttpSys",
-          "RejectionInvalidHeaderKestrel"
-        ]
-      }
+      "excludedScenarios": [
+        "RejectionInvalidHeaderHttpSys",
+        "RejectionInvalidHeaderKestrel"
+      ]
     },
     {
       "path": "jobs.load.results['http/latency/99']",
@@ -33,12 +31,10 @@
       "topCounter": true,
       "defaultCounter": false,
       "regressionThreshold": 0.05,
-      "applicability": {
-        "excludeScenarioNames": [
-          "RejectionInvalidHeaderHttpSys",
-          "RejectionInvalidHeaderKestrel"
-        ]
-      }
+      "excludedScenarios": [
+        "RejectionInvalidHeaderHttpSys",
+        "RejectionInvalidHeaderKestrel"
+      ]
     },
     {
       "path": "jobs.application.results['benchmarks/start-time']",
@@ -57,17 +53,7 @@
       "topCounter": true,
       "defaultCounter": false,
       "regressionThreshold": 0.02,
-      "normalization": {
-        "scale": 1024,
-        "offset": 0
-      }
+      "scale": 1024
     }
-  ],
-  "unmappedCounter": {
-    "nameTemplate": "{path}",
-    "metricName": "value",
-    "higherIsBetter": false,
-    "topCounter": false,
-    "defaultCounter": false
-  }
+  ]
 }

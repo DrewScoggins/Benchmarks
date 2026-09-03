@@ -9,19 +9,12 @@ using Crank.PerfLabExporter.Contracts.Crank;
 using Crank.PerfLabExporter.Contracts.Identity;
 using Crank.PerfLabExporter.Contracts.PerfLab;
 using Crank.PerfLabExporter.Contracts.Policy;
-using Crank.PerfLabExporter.Validation;
 
 namespace Crank.PerfLabExporter.Conversion
 {
     public sealed record CrankConversionResult(
         PerfLabReport Report,
         IReadOnlyList<string> Diagnostics);
-
-    public sealed record CrankConversionOptions(
-        bool ValidateScenarioProperty)
-    {
-        public static CrankConversionOptions Default { get; } = new(true);
-    }
 
     public sealed class CrankPerfLabConverter
     {
@@ -40,29 +33,7 @@ namespace Crank.PerfLabExporter.Conversion
             ExportSourceMetadata source,
             CancellationToken cancellationToken = default)
         {
-            return await ConvertAsync(
-                execution,
-                policy,
-                identity,
-                source,
-                CrankConversionOptions.Default,
-                cancellationToken);
-        }
-
-        public async Task<CrankConversionResult> ConvertAsync(
-            CrankExecutionResult execution,
-            CounterPolicy policy,
-            ExportIdentity identity,
-            ExportSourceMetadata source,
-            CrankConversionOptions options,
-            CancellationToken cancellationToken = default)
-        {
-            CounterPolicyValidator.ValidateAndThrow(policy);
-            ExportIdentityValidator.ValidateAndThrow(identity);
-            ValidateCrankProperties(
-                execution,
-                identity,
-                options.ValidateScenarioProperty);
+            ValidatePolicy(policy);
 
             var resolution = CrankDependencyResolver.Resolve(execution, identity);
             var enumeration = CrankScalarEnumerator.Enumerate(execution);
@@ -100,16 +71,17 @@ namespace Crank.PerfLabExporter.Conversion
                 throw new CrankConversionException("The resolved runtime commit timestamp is missing or default.");
             }
 
-            var mappingLookup = policy.Mappings.ToDictionary(mapping => mapping.Path!);
+            var mappingLookup = policy.Mappings.ToDictionary(
+                mapping => mapping.Path,
+                StringComparer.Ordinal);
             var counters = new List<(PerfLabCounter Counter, string SourcePath, bool IsMapped)>();
             foreach (var scalar in scalars)
             {
-                if (mappingLookup.TryGetValue(scalar.MappingPath, out var mapping))
+                if (mappingLookup.TryGetValue(scalar.SourcePath, out var mapping))
                 {
-                    if (!IsApplicable(
-                            mapping,
-                            identity.Scenario.Family,
-                            identity.Scenario.Name))
+                    if (mapping.ExcludedScenarios?.Contains(
+                            identity.Scenario.Name,
+                            StringComparer.Ordinal) == true)
                     {
                         diagnostics.Add(
                             $"Mapped numeric Crank result omitted for scenario " +
@@ -140,10 +112,10 @@ namespace Crank.PerfLabExporter.Conversion
                         new PerfLabCounter
                         {
                             Name = scalar.SourcePath,
-                            TopCounter = policy.UnmappedCounter.TopCounter,
-                            DefaultCounter = policy.UnmappedCounter.DefaultCounter,
-                            HigherIsBetter = policy.UnmappedCounter.HigherIsBetter,
-                            MetricName = policy.UnmappedCounter.MetricName,
+                            TopCounter = false,
+                            DefaultCounter = false,
+                            HigherIsBetter = false,
+                            MetricName = "value",
                             Results = [scalar.Value]
                         },
                         scalar.SourcePath,
@@ -157,6 +129,13 @@ namespace Crank.PerfLabExporter.Conversion
                 .ThenByDescending(counter => counter.Counter.TopCounter)
                 .ThenBy(counter => counter.Counter.Name, StringComparer.Ordinal)
                 .ToList();
+            if (orderedCounters.Count(counter =>
+                    counter.Counter.DefaultCounter) != 1)
+            {
+                throw new CrankConversionException(
+                    "The Crank result does not contain the configured default counter.");
+            }
+
             var testAdditionalData = CreateTestAdditionalData(
                 execution,
                 identity,
@@ -208,69 +187,69 @@ namespace Crank.PerfLabExporter.Conversion
                 ]
             };
 
-            PerfLabReportValidator.ValidateAndThrow(report);
             return new CrankConversionResult(report, diagnostics);
         }
 
-        private static bool IsApplicable(
-            CounterMapping mapping,
-            string scenarioFamily,
-            string scenarioName)
+        private static void ValidatePolicy(CounterPolicy policy)
         {
-            if (mapping.Applicability is null)
+            if (policy.SchemaVersion != 1)
             {
-                return true;
+                throw new CrankConversionException(
+                    $"Unsupported counter policy schema version {policy.SchemaVersion}.");
             }
 
-            if (!IsApplicableValue(
-                    mapping.Applicability.IncludeScenarioFamilies,
-                    mapping.Applicability.ExcludeScenarioFamilies,
-                    scenarioFamily,
-                    StringComparer.OrdinalIgnoreCase))
+            if (policy.Mappings.Count(mapping => mapping.DefaultCounter) != 1)
             {
-                return false;
+                throw new CrankConversionException(
+                    "The counter policy must contain exactly one default counter.");
             }
 
-            return IsApplicableValue(
-                mapping.Applicability.IncludeScenarioNames,
-                mapping.Applicability.ExcludeScenarioNames,
-                scenarioName,
-                StringComparer.Ordinal);
-        }
-
-        private static bool IsApplicableValue(
-            IReadOnlyCollection<string>? included,
-            IReadOnlyCollection<string>? excluded,
-            string value,
-            StringComparer comparer)
-        {
-            included ??= [];
-            excluded ??= [];
-            return (included.Count == 0 || included.Contains(value, comparer)) &&
-                !excluded.Contains(value, comparer);
-        }
-
-        private static void ValidateCrankProperties(
-            CrankExecutionResult execution,
-            ExportIdentity identity,
-            bool validateScenarioProperty)
-        {
-            ValidateProperty("buildId", identity.AzureDevOps.BuildId, "Azure DevOps build ID");
-            ValidateProperty("buildNumber", identity.AzureDevOps.BuildNumber, "Azure DevOps build number");
-            if (validateScenarioProperty)
+            var duplicatePath = policy.Mappings
+                .GroupBy(mapping => mapping.Path, StringComparer.Ordinal)
+                .FirstOrDefault(group => group.Count() > 1);
+            var duplicateName = policy.Mappings
+                .GroupBy(mapping => mapping.Name, StringComparer.Ordinal)
+                .FirstOrDefault(group => group.Count() > 1);
+            if (duplicatePath is not null || duplicateName is not null)
             {
-                ValidateProperty("scenario", identity.Scenario.Name, "scenario");
+                throw new CrankConversionException(
+                    "Counter policy paths and names must be unique.");
             }
 
-            void ValidateProperty(string name, string expected, string description)
+            foreach (var mapping in policy.Mappings)
             {
-                var property = execution.JobResults.Properties.FirstOrDefault(pair =>
-                    pair.Key.Equals(name, StringComparison.OrdinalIgnoreCase));
-                if (!string.IsNullOrWhiteSpace(property.Key) &&
-                    !string.Equals(property.Value, expected, StringComparison.Ordinal))
+                if (string.IsNullOrWhiteSpace(mapping.Path) ||
+                    string.IsNullOrWhiteSpace(mapping.Name) ||
+                    string.IsNullOrWhiteSpace(mapping.MetricName))
                 {
                     throw new CrankConversionException(
-                        $"Crank property '{property.Key}' value '{property.Value}' contradicts the supplied {description} '{expected}'.");
+                        "Counter policy mappings require a path, name, and metricName.");
+                }
+
+                if (mapping.DefaultCounter && !mapping.TopCounter)
+                {
+                    throw new CrankConversionException(
+                        $"Default counter '{mapping.Name}' must also be a top counter.");
+                }
+
+                if (mapping.DefaultCounter &&
+                    mapping.ExcludedScenarios?.Count > 0)
+                {
+                    throw new CrankConversionException(
+                        "The default counter cannot exclude scenarios.");
+                }
+
+                if (!double.IsFinite(mapping.Scale) || mapping.Scale <= 0)
+                {
+                    throw new CrankConversionException(
+                        $"Counter '{mapping.Name}' has an invalid scale.");
+                }
+
+                if (mapping.RegressionThreshold is { } threshold &&
+                    (!double.IsFinite(threshold) || threshold <= 0 || threshold > 1))
+                {
+                    throw new CrankConversionException(
+                        $"Counter '{mapping.Name}' has an invalid regression threshold.");
                 }
             }
         }
@@ -280,12 +259,12 @@ namespace Crank.PerfLabExporter.Conversion
             CounterMapping mapping,
             string sourcePath)
         {
-            if (mapping.Normalization is null)
+            if (mapping.Scale == 1)
             {
                 return value;
             }
 
-            var normalized = (value * mapping.Normalization.Scale) + mapping.Normalization.Offset;
+            var normalized = value * mapping.Scale;
             if (!double.IsFinite(normalized))
             {
                 throw new CrankConversionException(
